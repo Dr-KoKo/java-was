@@ -68,7 +68,6 @@ public class HttpRequestHandler implements Runnable {
             outputStream.write('\n');
             if (response.hasBody()) {
                 Body body = response.getBody();
-                // TODO: encoding 타입에 맞게 응답
                 outputStream.write(body.getBody());
             }
             connectionManager.write(outputStream.toByteArray());

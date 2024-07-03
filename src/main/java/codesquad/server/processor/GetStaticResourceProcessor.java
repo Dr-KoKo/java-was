@@ -37,7 +37,7 @@ public class GetStaticResourceProcessor extends StaticResourceProcessor {
 
         Headers headers = new Headers();
         String extension = getExtension(file);
-        if("html".equals(extension)) {
+        if ("html".equals(extension)) {
             headers.addHeader("content-type", "text/html");
         }
         return new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.OK), headers, new Body(bytes));

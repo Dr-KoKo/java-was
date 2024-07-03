@@ -4,7 +4,6 @@ import codesquad.http.model.body.Body;
 import codesquad.http.model.header.Header;
 import codesquad.http.model.header.Headers;
 import codesquad.http.model.startline.RequestLine;
-import codesquad.http.model.startline.Target;
 
 public class HttpRequest {
     private final RequestLine requestLine;

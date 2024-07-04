@@ -1,7 +1,9 @@
 package codesquad.http.model.startline;
 
 public enum StatusCode {
-    OK(200, "OK"), BAD_REQUEST(400, "Bad Request");
+    OK(200, "OK"),
+    FOUND(302, "Found"),
+    BAD_REQUEST(400, "Bad Request");
 
     private final int code;
     private final String message;

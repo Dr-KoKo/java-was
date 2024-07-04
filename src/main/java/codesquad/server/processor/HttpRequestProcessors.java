@@ -1,5 +1,6 @@
 package codesquad.server.processor;
 
+import codesquad.application.container.ApplicationContainer;
 import codesquad.http.model.HttpRequest;
 import codesquad.http.model.HttpResponse;
 
@@ -9,7 +10,7 @@ public class HttpRequestProcessors implements HttpRequestProcessor {
     private final List<HttpRequestProcessor> processors;
 
     public HttpRequestProcessors() {
-        this.processors = List.of(new GetStaticResourceProcessor());
+        this.processors = List.of(new GetStaticResourceProcessor(), ApplicationContainer.getInstance().actionProcessors());
     }
 
     @Override

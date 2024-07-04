@@ -3,7 +3,11 @@ package codesquad.http.model;
 import codesquad.http.model.body.Body;
 import codesquad.http.model.header.Header;
 import codesquad.http.model.header.Headers;
+import codesquad.http.model.startline.Method;
 import codesquad.http.model.startline.RequestLine;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class HttpRequest {
     private final RequestLine requestLine;
@@ -46,5 +50,18 @@ public class HttpRequest {
 
     public String getRequestPath() {
         return requestLine.getTarget().getPath();
+    }
+
+    public Method getMethod() {
+        return requestLine.getMethod();
+    }
+
+    public Map<String, String> getQueryString() {
+        Map<String, String> result = new HashMap<>();
+        String queryString = requestLine.getTarget().getPath().split("\\?")[1];
+        for (String query : queryString.split("&")) {
+            result.put(query.split("=")[0], query.split("=")[1]);
+        }
+        return result;
     }
 }

@@ -3,6 +3,7 @@ package codesquad.server.processor;
 import codesquad.http.model.HttpRequest;
 import codesquad.http.model.HttpResponse;
 import codesquad.http.model.body.Body;
+import codesquad.http.model.header.ContentType;
 import codesquad.http.model.header.Headers;
 import codesquad.http.model.startline.Method;
 import codesquad.http.model.startline.StatusCode;
@@ -23,6 +24,21 @@ public class GetStaticResourceProcessor extends StaticResourceProcessor {
         if (!file.exists()) {
             return null;
         }
+        byte[] bytes = getBytes(file);
+
+        Headers headers = new Headers();
+        addContentType(headers, getExtension(file));
+        return new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.OK), headers, new Body(bytes));
+    }
+
+    private static void addContentType(Headers headers, String extension) {
+        ContentType contentType = ContentType.ofExtension(extension);
+        if (contentType != null) {
+            headers.addHeader("content-type", contentType.getContentType());
+        }
+    }
+
+    private static byte[] getBytes(File file) {
         byte[] bytes;
         try {
             FileInputStream fileInputStream = new FileInputStream(file);
@@ -34,13 +50,7 @@ public class GetStaticResourceProcessor extends StaticResourceProcessor {
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
-
-        Headers headers = new Headers();
-        String extension = getExtension(file);
-        if ("html".equals(extension)) {
-            headers.addHeader("content-type", "text/html");
-        }
-        return new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.OK), headers, new Body(bytes));
+        return bytes;
     }
 
     public static String getExtension(File file) {

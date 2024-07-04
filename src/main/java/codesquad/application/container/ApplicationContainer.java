@@ -43,8 +43,7 @@ public class ApplicationContainer {
         return httpRequest -> {
             Map<String, String> queryString = httpRequest.getQueryString();
             // store user
-            User user = new User(queryString.get("userId"), queryString.get("userName"), queryString.get("password"));
-            System.out.println(user);
+            User user = new User(queryString.get("userId"), queryString.get("password"), queryString.get("nickname"));
 
             StatusLine statusLine = new StatusLine(Version.HTTP_1_1, StatusCode.FOUND);
             Headers headers = new Headers();

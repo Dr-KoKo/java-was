@@ -49,7 +49,7 @@ public class HttpRequest {
     }
 
     public String getRequestPath() {
-        return requestLine.getTarget().getPath();
+        return requestLine.getTarget().getPath().split("\\?")[0];
     }
 
     public Method getMethod() {

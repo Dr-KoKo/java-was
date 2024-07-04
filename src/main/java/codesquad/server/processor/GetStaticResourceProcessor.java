@@ -20,15 +20,34 @@ public class GetStaticResourceProcessor extends StaticResourceProcessor {
 
     @Override
     public HttpResponse process(HttpRequest request) {
-        File file = new File(rootPath, request.getRequestPath());
-        if (!file.exists()) {
+        String requestPath = resolvePath(request);
+        File file = getFile(requestPath);
+        if (file == null) {
             return null;
         }
         byte[] bytes = getBytes(file);
-
         Headers headers = new Headers();
         addContentType(headers, getExtension(file));
         return new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.OK), headers, new Body(bytes));
+    }
+
+    private static File getFile(String requestPath) {
+        File file = requestPath.isBlank() ? new File(rootPath) : new File(rootPath, requestPath);
+        if (!file.exists()) {
+            return null;
+        }
+        if (file.isDirectory()) {
+            file = new File(file, "index.html");
+        }
+        return file;
+    }
+
+    private String resolvePath(HttpRequest request) {
+        String result = request.getRequestPath();
+        while (result.endsWith("/")) {
+            result = result.substring(0, result.length() - 1);
+        }
+        return result;
     }
 
     private static void addContentType(Headers headers, String extension) {

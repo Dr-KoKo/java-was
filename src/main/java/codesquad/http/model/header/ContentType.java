@@ -24,7 +24,7 @@ public enum ContentType {
                 return contentType;
             }
         }
-        return null;
+        return ContentType.DEFAULT;
     }
 
     public String getExtension() {

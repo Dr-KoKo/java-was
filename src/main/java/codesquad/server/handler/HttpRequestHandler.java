@@ -35,21 +35,25 @@ public class HttpRequestHandler implements Runnable {
 
     @Override
     public void run() {
-        logger.info("Client connected");
+        logger.debug("Client connected");
 
         while (connectionManager.isAlive()) {
             try {
                 HttpRequest httpRequest = getHttpRequest();
+                logger.debug("message received = {}", httpRequest);
                 HttpResponse response = processor.process(httpRequest);
+                logger.debug("processed = {}", response);
                 responseHttp(response);
             } catch (BadGrammarException e) {
+                logger.info("exception", e);
                 responseHttp(HttpResponse.BAD_REQUEST);
             } catch (Exception exception) {
-                close();
+                logger.info("exception", exception);
             } finally {
                 connectionManager.incrementRequestCounter();
             }
         }
+        logger.debug("Client disconnected");
         close();
     }
 

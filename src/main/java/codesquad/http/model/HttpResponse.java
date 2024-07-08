@@ -13,6 +13,10 @@ public class HttpResponse {
     private final Headers headers;
     private final Body body;
 
+    public HttpResponse(StatusLine statusLine) {
+        this(statusLine, null, null);
+    }
+
     public HttpResponse(StatusLine statusLine, Headers headers, Body body) {
         this.statusLine = statusLine;
         this.headers = headers;
@@ -33,6 +37,15 @@ public class HttpResponse {
 
     public boolean hasBody() {
         return body != null;
+    }
+
+    @Override
+    public String toString() {
+        return "HttpResponse{" +
+                "statusLine=" + statusLine +
+                ", headers=" + headers +
+                ", body=" + body +
+                '}';
     }
 
     private static class BadRequestHttpResponse extends HttpResponse {

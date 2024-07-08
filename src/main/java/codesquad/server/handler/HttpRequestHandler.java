@@ -84,7 +84,7 @@ public class HttpRequestHandler implements Runnable {
         HttpRequest httpRequest = httpRequestParser.parseRequestLine(connectionManager.readLine());
         httpRequest = httpRequestParser.parseHeader(httpRequest, connectionManager.readLines());
         if (httpRequest.hasBody()) {
-            byte[] read = connectionManager.readNBytes(httpRequest.getContentLength() * 2);
+            byte[] read = connectionManager.readNBytes(httpRequest.getContentLength());
             httpRequest = httpRequestParser.parseBody(httpRequest, new String(read, StandardCharsets.UTF_8));
         }
         return httpRequest;

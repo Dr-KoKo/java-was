@@ -14,7 +14,7 @@ public class HttpResponse {
     private final Body body;
 
     public HttpResponse(StatusLine statusLine) {
-        this(statusLine, null, null);
+        this(statusLine, new Headers(), null);
     }
 
     public HttpResponse(StatusLine statusLine, Headers headers, Body body) {

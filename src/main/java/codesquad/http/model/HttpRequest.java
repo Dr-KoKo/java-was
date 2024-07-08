@@ -64,4 +64,13 @@ public class HttpRequest {
         }
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "HttpRequest{" +
+                "requestLine=" + requestLine +
+                ", headers=" + headers +
+                ", message=" + message +
+                '}';
+    }
 }

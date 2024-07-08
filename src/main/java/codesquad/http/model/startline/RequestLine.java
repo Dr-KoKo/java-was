@@ -22,4 +22,13 @@ public class RequestLine {
     public Target getTarget() {
         return target;
     }
+
+    @Override
+    public String toString() {
+        return "RequestLine{" +
+                "version=" + version +
+                ", method=" + method +
+                ", target=" + target +
+                '}';
+    }
 }

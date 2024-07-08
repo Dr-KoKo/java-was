@@ -7,7 +7,8 @@ public enum ContentType {
     ICO("ico", "image/x-icon"),
     PNG("png", "image/png"),
     JPG("jpg", "image/jpeg"),
-    SVG("svg", "image/svg+xml");
+    SVG("svg", "image/svg+xml"),
+    DEFAULT("", "text/plain");
 
     private final String extension;
     private final String contentType;

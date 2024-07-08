@@ -39,7 +39,7 @@ public abstract class ConnectionManager {
         }
     }
 
-    public String readLine() {
+    public String readStartLine() {
         try {
             return getInputStreamBufferedReader().readLine();
         } catch (IOException e) {
@@ -47,7 +47,7 @@ public abstract class ConnectionManager {
         }
     }
 
-    public String readLines() {
+    public String readHeaders() {
         StringBuilder sb = new StringBuilder();
         String line;
         try {

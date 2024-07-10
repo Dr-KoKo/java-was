@@ -2,6 +2,8 @@ package codesquad.application;
 
 import codesquad.application.handler.RequestHandler;
 import codesquad.application.parser.FormDataBodyParser;
+import codesquad.infra.MemorySessionStorage;
+import codesquad.infra.MemoryStorage;
 
 public class SingletonContainer {
     private static SingletonContainer instance;
@@ -14,7 +16,7 @@ public class SingletonContainer {
 
     public static SingletonContainer getInstance() {
         if (instance == null) {
-            instance = new SingletonContainer(new RequestHandler(new FormDataBodyParser()));
+            instance = new SingletonContainer(new RequestHandler(new FormDataBodyParser(), new MemoryStorage(), new MemorySessionStorage()));
         }
         return instance;
     }

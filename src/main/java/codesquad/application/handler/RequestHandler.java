@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.http.model.HttpRequest;
 import server.http.model.HttpResponse;
+import server.http.model.header.Header;
 import server.http.model.header.Headers;
 import server.http.model.startline.StatusCode;
 import server.http.model.startline.StatusLine;
@@ -63,6 +64,30 @@ public class RequestHandler {
             headers.addHeader("Location", "/user/login_failed.html");
         }
         return new HttpResponse(statusLine, headers, null);
+    }
+
+    @PostMapping(path = "/logout")
+    public HttpResponse logout(HttpRequest request) {
+        String sessionId = getSessionId(request);
+        if(sessionId != null) {
+            sessionStorage.invalidate(sessionId);
+        }
+
+        StatusLine statusLine = new StatusLine(Version.HTTP_1_1, StatusCode.FOUND);
+        Headers headers = new Headers();
+        headers.addHeader("Set-Cookie", "sid=" + " " + "; Path=/" + "; Max-age=0");
+        headers.addHeader("Location", "/index.html");
+        return new HttpResponse(statusLine, headers, null);
+    }
+
+    private String getSessionId(HttpRequest request) {
+        String cookieValue = request.getHeader().get(Header.COOKIE.getFieldName());
+        for (String cookie : cookieValue.split(";")) {
+            if ("sid".equals(cookie.split("=")[0])) {
+                return cookie.split("=")[1];
+            }
+        }
+        return null;
     }
 
     private Map<String, String> getBody(HttpRequest request) {

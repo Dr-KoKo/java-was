@@ -22,4 +22,9 @@ public class MemorySessionStorage implements SessionStorage {
     public Object get(String sid) {
         return sessionStorage.get(sid);
     }
+
+    @Override
+    public void invalidate(String sid) {
+        sessionStorage.remove(sid);
+    }
 }

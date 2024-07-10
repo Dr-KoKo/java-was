@@ -11,6 +11,22 @@ public class User {
         this.nickname = nickname;
     }
 
+    public String getUserId() {
+        return userId;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public boolean matchesPassword(String password) {
+        return this.password.equals(password);
+    }
+
     @Override
     public String toString() {
         return "User{" +

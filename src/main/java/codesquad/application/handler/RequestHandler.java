@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class RequestHandler {
@@ -49,23 +50,10 @@ public class RequestHandler {
 
     @GetMapping(path = "/user/login")
     public HttpResponse loginForm(HttpRequest request) {
-        URL resourceUrl = getResourceUrl("/templates/user/login/index.html");
+        String status = request.getQueryString().get("status");
+        URL resourceUrl = Objects.equals(status, "fail") ?
+                getResourceUrl("/templates/user/login/login_failed.html") : getResourceUrl("/templates/user/login/index.html");
         return responseResource(resourceUrl);
-    }
-
-    @PostMapping(path = "/user/create")
-    public HttpResponse create(HttpRequest request) {
-        Map<String, String> parameters = getBody(request);
-        // store user
-        User user = new User(parameters.get("userId"), parameters.get("password"), parameters.get("nickname"));
-        logger.debug("Creating request processor for user {}", user);
-
-        userDao.save(user);
-
-        StatusLine statusLine = new StatusLine(Version.HTTP_1_1, StatusCode.FOUND);
-        Headers headers = new Headers();
-        headers.addHeader("Location", "/");
-        return new HttpResponse(statusLine, headers, null);
     }
 
     @PostMapping(path = "/user/login")
@@ -85,8 +73,23 @@ public class RequestHandler {
             headers.addHeader("Location", "/");
             headers.addHeader("Set-Cookie", "sid=" + sid + "; Path=/");
         } else {
-            headers.addHeader("Location", "/user/login_failed.html");
+            headers.addHeader("Location", "/user/login?status=fail");
         }
+        return new HttpResponse(statusLine, headers, null);
+    }
+
+    @PostMapping(path = "/user/create")
+    public HttpResponse create(HttpRequest request) {
+        Map<String, String> parameters = getBody(request);
+        // store user
+        User user = new User(parameters.get("userId"), parameters.get("password"), parameters.get("nickname"));
+        logger.debug("Creating request processor for user {}", user);
+
+        userDao.save(user);
+
+        StatusLine statusLine = new StatusLine(Version.HTTP_1_1, StatusCode.FOUND);
+        Headers headers = new Headers();
+        headers.addHeader("Location", "/");
         return new HttpResponse(statusLine, headers, null);
     }
 

@@ -58,7 +58,7 @@ public class HttpRequest {
     }
 
     public Map<String, String> getQueryString() {
-        if (!requestLine.getTarget().getPath().contains("\\?")) {
+        if (!requestLine.getTarget().getPath().contains("?")) {
             return Collections.emptyMap();
         }
         Map<String, String> result = new HashMap<>();

@@ -19,11 +19,9 @@ import java.net.URL;
 public class GetStaticResourceProcessor implements HttpRequestProcessor {
     private static final Logger logger = LoggerFactory.getLogger(GetStaticResourceProcessor.class);
 
-    private static final String STATIC_ROOT = "/static";
-
     @Override
     public HttpResponse process(HttpRequest request) {
-        String requestPath = resolvePath(request);
+        String requestPath = request.getRequestPath();
         URL resourceUrl = getResourceUrl(requestPath);
         if (resourceUrl == null) {
             return notFoundResponse();
@@ -43,22 +41,10 @@ public class GetStaticResourceProcessor implements HttpRequestProcessor {
         return request.getMethod() == Method.GET;
     }
 
-    private String resolvePath(HttpRequest request) {
-        String path = request.getRequestPath();
-        if (path.isEmpty() || path.equals("/")) {
-            return "/index.html";
-        }
-        return path;
-    }
-
     private URL getResourceUrl(String requestPath) {
-        String resourcePath = STATIC_ROOT + requestPath;
-        if (!resourcePath.contains(".")) {
-            resourcePath = resourcePath + "/index.html";
-        }
-        URL resourceUrl = getClass().getResource(resourcePath);
+        URL resourceUrl = getClass().getResource(requestPath);
         if (resourceUrl == null) {
-            logger.info("Resource not found in classpath: {}", resourcePath);
+            logger.info("Resource not found in classpath: {}", requestPath);
         } else {
             logger.info("Resource found: {}", resourceUrl);
         }

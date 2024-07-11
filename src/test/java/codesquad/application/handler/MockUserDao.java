@@ -2,6 +2,7 @@ package codesquad.application.handler;
 
 import codesquad.application.model.User;
 
+import java.util.List;
 import java.util.Optional;
 
 public class MockUserDao implements UserDao {
@@ -21,6 +22,11 @@ public class MockUserDao implements UserDao {
     public Optional<User> findByUserId(String userId) {
         countFindByUserId++;
         return Optional.ofNullable(user);
+    }
+
+    @Override
+    public List<User> findAll() {
+        return List.of(user);
     }
 
     public int getCountSave() {

@@ -18,10 +18,13 @@ import server.http.model.startline.Version;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RequestHandler {
     private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
@@ -39,13 +42,13 @@ public class RequestHandler {
     @GetMapping(path = "/")
     public HttpResponse index(HttpRequest request) {
         URL resourceUrl = getResourceUrl("/templates/index.html");
-        return responseResource(resourceUrl);
+        return resourceResponse(resourceUrl, request);
     }
 
     @GetMapping(path = "/user/registration")
     public HttpResponse createUser(HttpRequest request) {
         URL resourceUrl = getResourceUrl("/templates/user/registration/index.html");
-        return responseResource(resourceUrl);
+        return resourceResponse(resourceUrl, request);
     }
 
     @GetMapping(path = "/user/login")
@@ -53,7 +56,7 @@ public class RequestHandler {
         String status = request.getQueryString().get("status");
         URL resourceUrl = Objects.equals(status, "fail") ?
                 getResourceUrl("/templates/user/login/login_failed.html") : getResourceUrl("/templates/user/login/index.html");
-        return responseResource(resourceUrl);
+        return resourceResponse(resourceUrl, request);
     }
 
     @PostMapping(path = "/user/login")
@@ -65,17 +68,16 @@ public class RequestHandler {
 
         Optional<User> findUser = userDao.findByUserId(userId);
         boolean matches = findUser.isPresent() && findUser.get().matchesPassword(password);
-
-        StatusLine statusLine = new StatusLine(Version.HTTP_1_1, StatusCode.FOUND);
-        Headers headers = new Headers();
         if (matches) {
+            StatusLine statusLine = new StatusLine(Version.HTTP_1_1, StatusCode.FOUND);
+            Headers headers = new Headers();
             String sid = sessionStorage.store(findUser.get());
             headers.addHeader("Location", "/");
             headers.addHeader("Set-Cookie", "sid=" + sid + "; Path=/");
+            return new HttpResponse(statusLine, headers, null);
         } else {
-            headers.addHeader("Location", "/user/login?status=fail");
+            return foundResponse("/user/login?status=fail");
         }
-        return new HttpResponse(statusLine, headers, null);
     }
 
     @PostMapping(path = "/user/create")
@@ -87,10 +89,7 @@ public class RequestHandler {
 
         userDao.save(user);
 
-        StatusLine statusLine = new StatusLine(Version.HTTP_1_1, StatusCode.FOUND);
-        Headers headers = new Headers();
-        headers.addHeader("Location", "/");
-        return new HttpResponse(statusLine, headers, null);
+        return foundResponse("/");
     }
 
     @PostMapping(path = "/logout")
@@ -107,18 +106,43 @@ public class RequestHandler {
         return new HttpResponse(statusLine, headers, null);
     }
 
-    private HttpResponse responseResource(URL resourceUrl) {
+    private boolean isLogin(HttpRequest request) {
+        String cookie = request.getHeader().get(Header.COOKIE.getFieldName());
+        return cookie != null && cookie.contains("sid");
+    }
+
+    private HttpResponse resourceResponse(URL resourceUrl, HttpRequest httpRequest) {
         if (resourceUrl == null) {
             return notFoundResponse();
         }
         byte[] content;
         try {
             content = getContent(resourceUrl);
+            content = replaceHeader(content, httpRequest);
         } catch (IOException e) {
             return serverErrorResponse();
         }
         String contentType = getContentType(resourceUrl.getFile());
         return okResponse(content, contentType);
+    }
+
+    private byte[] replaceHeader(byte[] content, HttpRequest httpRequest) throws UnsupportedEncodingException {
+        String target = new String(content);
+        String regex = "<header\\b[^>]*>(.*?)</header>";
+        Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
+        String replacement;
+        try {
+            URL replcaementUrl = isLogin(httpRequest) ?
+                    getResourceUrl("/templates/block/header/login_header.html") : getResourceUrl("/templates/block/header/not_login_header.html");
+            byte[] replacementContent = getContent(replcaementUrl);
+            replacement = new String(replacementContent);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        Matcher matcher = pattern.matcher(target);
+        String result = matcher.replaceAll(replacement);
+        return result.getBytes();
     }
 
     private static byte[] getContent(URL resourceUrl) throws IOException {
@@ -171,8 +195,18 @@ public class RequestHandler {
         return new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.OK), headers, new Body(content));
     }
 
+    private HttpResponse foundResponse(String location) {
+        Headers headers = new Headers();
+        headers.addHeader("Location", location);
+        return new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.FOUND), headers, null);
+    }
+
     private HttpResponse notFoundResponse() {
         return new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.NOT_FOUND));
+    }
+
+    private HttpResponse unauthorizedResponse() {
+        return new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.UNAUTHORIZED));
     }
 
     private HttpResponse serverErrorResponse() {

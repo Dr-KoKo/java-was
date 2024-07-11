@@ -38,7 +38,7 @@ class RequestHandlerTest implements HttpRequestFixture {
             Assertions.assertEquals(mockUserDao.getCountSave(), 1);
         }
 
-        @DisplayName("/index.html로 redirect한다.")
+        @DisplayName("/로 redirect한다.")
         @Test
         void redirect() {
             // when
@@ -47,7 +47,7 @@ class RequestHandlerTest implements HttpRequestFixture {
 
             // then
             Assertions.assertEquals(httpResponse.getStatusLine().toString(), "HTTP/1.1 302 Found\n");
-            Assertions.assertEquals(httpResponse.getHeader().get("Location"), "/index.html");
+            Assertions.assertEquals(httpResponse.getHeader().get("Location"), "/");
         }
     }
 
@@ -68,7 +68,7 @@ class RequestHandlerTest implements HttpRequestFixture {
             Assertions.assertNotNull(httpResponse.getHeader().get("Set-Cookie"));
         }
 
-        @DisplayName("/index.html로 redirect한다.")
+        @DisplayName("/l로 redirect한다.")
         @Test
         void redirect() {
             // given
@@ -80,14 +80,14 @@ class RequestHandlerTest implements HttpRequestFixture {
 
             // then
             Assertions.assertEquals(httpResponse.getStatusLine().toString(), "HTTP/1.1 302 Found\n");
-            Assertions.assertEquals(httpResponse.getHeader().get("Location"), "/index.html");
+            Assertions.assertEquals(httpResponse.getHeader().get("Location"), "/");
         }
     }
 
     @DisplayName("로그인이 실패하면")
     @Nested
     class WhenLoginFail {
-        @DisplayName("/user/login_failed.html로 redirect한다.")
+        @DisplayName("/user/login?status=fail로 redirect한다.")
         @Test
         void redirect() {
             // given
@@ -99,7 +99,7 @@ class RequestHandlerTest implements HttpRequestFixture {
 
             // then
             Assertions.assertEquals(httpResponse.getStatusLine().toString(), "HTTP/1.1 302 Found\n");
-            Assertions.assertEquals(httpResponse.getHeader().get("Location"), "/user/login_failed.html");
+            Assertions.assertEquals(httpResponse.getHeader().get("Location"), "/user/login?status=fail");
         }
     }
 }

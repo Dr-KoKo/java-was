@@ -8,20 +8,22 @@ import codesquad.infra.MemoryStorage;
 public class SingletonContainer {
     private static SingletonContainer instance;
 
-    private final RequestHandler requestHandler;
+    private RequestHandler requestHandler;
 
-    private SingletonContainer(RequestHandler requestHandler) {
-        this.requestHandler = requestHandler;
+    private SingletonContainer() {
     }
 
     public static SingletonContainer getInstance() {
         if (instance == null) {
-            instance = new SingletonContainer(new RequestHandler(new FormDataBodyParser(), new MemoryStorage(), new MemorySessionStorage()));
+            instance = new SingletonContainer();
         }
         return instance;
     }
 
     public RequestHandler requestHandler() {
+        if (requestHandler == null) {
+            requestHandler = new RequestHandler(new FormDataBodyParser(), new MemoryStorage(), new MemorySessionStorage());
+        }
         return requestHandler;
     }
 }

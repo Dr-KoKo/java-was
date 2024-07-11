@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -57,6 +58,16 @@ public class RequestHandler {
         URL resourceUrl = Objects.equals(status, "fail") ?
                 getResourceUrl("/templates/user/login/login_failed.html") : getResourceUrl("/templates/user/login/index.html");
         return resourceResponse(resourceUrl, request);
+    }
+
+    @GetMapping(path = "/user/list")
+    public HttpResponse userList(HttpRequest request) {
+        if (!isLogin(request)) {
+            return unauthorizedResponse();
+        }
+        URL resourceUrl = getResourceUrl("/templates/user/list/index.html");
+        List<User> all = userDao.findAll();
+        return resourceResponse(resourceUrl, request, all);
     }
 
     @PostMapping(path = "/user/login")
@@ -124,6 +135,41 @@ public class RequestHandler {
         }
         String contentType = getContentType(resourceUrl.getFile());
         return okResponse(content, contentType);
+    }
+
+    private HttpResponse resourceResponse(URL resourceUrl, HttpRequest httpRequest, List<User> all) {
+        if (resourceUrl == null) {
+            return notFoundResponse();
+        }
+        byte[] content;
+        try {
+            content = getContent(resourceUrl);
+            content = replaceHeader(content, httpRequest);
+            content = replaceUser(content, all);
+        } catch (IOException e) {
+            return serverErrorResponse();
+        }
+        String contentType = getContentType(resourceUrl.getFile());
+        return okResponse(content, contentType);
+    }
+
+    private byte[] replaceUser(byte[] content, List<User> all) {
+        String target = new String(content);
+        String regex = "<tbody\\b[^>]*>(.*?)</tbody>";
+        Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
+        StringBuilder replacement = new StringBuilder();
+        replacement.append("<tbody>");
+        for (User user : all) {
+            replacement.append("<tr>")
+                    .append("<td>").append(user.getUserId()).append("</td>")
+                    .append("<td>").append(user.getNickname()).append("</td>")
+                    .append("</tr>");
+        }
+        replacement.append("</tbody>");
+
+        Matcher matcher = pattern.matcher(target);
+        String result = matcher.replaceAll(replacement.toString());
+        return result.getBytes();
     }
 
     private byte[] replaceHeader(byte[] content, HttpRequest httpRequest) throws UnsupportedEncodingException {

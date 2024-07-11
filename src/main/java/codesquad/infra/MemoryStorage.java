@@ -3,6 +3,7 @@ package codesquad.infra;
 import codesquad.application.handler.UserDao;
 import codesquad.application.model.User;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,5 +18,10 @@ public class MemoryStorage implements UserDao {
     @Override
     public Optional<User> findByUserId(String userId) {
         return Optional.ofNullable(users.get(userId));
+    }
+
+    @Override
+    public List<User> findAll() {
+        return users.values().stream().toList();
     }
 }

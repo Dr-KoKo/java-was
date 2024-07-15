@@ -16,7 +16,7 @@ public class HttpRequest {
     private final Body body;
 
     public HttpRequest(RequestLine requestLine) {
-        this(requestLine, null);
+        this(requestLine, new Headers());
     }
 
     public HttpRequest(RequestLine requestLine, Headers headers) {

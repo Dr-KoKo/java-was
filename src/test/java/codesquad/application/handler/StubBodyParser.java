@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class StubBodyParser implements BodyParser {
     @Override
-    public Map<String, String> parse(String body) {
+    public Map<String, String> parse(byte[] body) {
         return Map.of("userId", "donghar", "password", "password", "nickname", "dr-koko");
     }
 

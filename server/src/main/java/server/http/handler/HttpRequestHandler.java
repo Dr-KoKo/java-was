@@ -20,7 +20,6 @@ import server.processor.HttpRequestProcessors;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 
 public class HttpRequestHandler implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(HttpRequestHandler.class);
@@ -84,12 +83,12 @@ public class HttpRequestHandler implements Runnable {
     }
 
     private HttpRequest getHttpRequest() throws BadGrammarException {
-        HttpRequest httpRequest = httpRequestParser.parseRequestLine(connectionManager.readStartLine());
-        httpRequest = httpRequestParser.parseHeader(httpRequest, connectionManager.readHeaders());
+        HttpRequest httpRequest = httpRequestParser.parseRequestLine(connectionManager.readLine());
+        httpRequest = httpRequestParser.parseHeader(httpRequest, connectionManager.readUntilCrlf());
         if (httpRequest.hasBody()) {
             logger.debug("reading body {} bytes", httpRequest.getContentLength());
             byte[] read = connectionManager.readNBytes(httpRequest.getContentLength());
-            httpRequest = httpRequestParser.parseBody(httpRequest, new String(read, StandardCharsets.UTF_8));
+            httpRequest = httpRequestParser.parseBody(httpRequest, read);
         }
         return httpRequest;
     }

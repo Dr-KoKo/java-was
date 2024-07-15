@@ -14,7 +14,6 @@ public abstract class ConnectionManager {
     protected final KeepAliveManager keepAliveManager;
 
     private volatile InputStream is;
-    private volatile BufferedReader in;
 
     protected ConnectionManager(Socket socket, KeepAliveManager keepAliveManager) {
         this.socket = socket;
@@ -38,20 +37,20 @@ public abstract class ConnectionManager {
         }
     }
 
-    public String readStartLine() {
+    public String readLine() {
         try {
-            return getInputStreamBufferedReader().readLine();
+            return readLine(getInputStream());
         } catch (IOException e) {
             throw new ConnectedSocketException(e);
         }
     }
 
-    public String readHeaders() {
+    public String readUntilCrlf() {
         StringBuilder sb = new StringBuilder();
         String line;
         try {
-            BufferedReader reader = getInputStreamBufferedReader();
-            while ((line = reader.readLine()) != null && !line.isEmpty()) {
+            InputStream inputStream = getInputStream();
+            while ((line = readLine(inputStream)) != null && !line.isEmpty()) {
                 sb.append(line).append("\n");
             }
         } catch (IOException e) {
@@ -62,12 +61,14 @@ public abstract class ConnectionManager {
 
     public byte[] readNBytes(int bytes) {
         try {
-            ByteArrayOutputStream output = new ByteArrayOutputStream(bytes);
-            BufferedReader reader = getInputStreamBufferedReader();
-            for (int i = 0; i < bytes; i++) {
-                output.write(reader.read());
+            byte[] buffer = new byte[bytes];
+            int bytesRead = getInputStream().read(buffer, 0, bytes);
+            if (bytesRead < bytes) {
+                byte[] bytesReadArray = new byte[bytesRead];
+                System.arraycopy(buffer, 0, bytesReadArray, 0, bytesRead);
+                return bytesReadArray;
             }
-            return output.toByteArray();
+            return buffer;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -97,10 +98,20 @@ public abstract class ConnectionManager {
         return is;
     }
 
-    public synchronized BufferedReader getInputStreamBufferedReader() {
-        if (in == null) {
-            in = new BufferedReader(new InputStreamReader(getInputStream()));
+    private String readLine(InputStream inputStream) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        int c;
+        while ((c = inputStream.read()) != -1) {
+            if (c == '\n') {
+                break;
+            }
+            if (c != '\r') {
+                sb.append((char) c);
+            }
         }
-        return in;
+        if (sb.isEmpty() && c == -1) {
+            return null;
+        }
+        return sb.toString();
     }
 }

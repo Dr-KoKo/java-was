@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -227,7 +228,7 @@ public class RequestHandler {
     }
 
     private Map<String, String> getBody(HttpRequest request) {
-        Map<String, String> parameters = parser.parse(new String(request.getBody().getMessage()));
+        Map<String, String> parameters = parser.parse(request.getBody().getMessage());
         for (Map.Entry<String, String> stringStringEntry : parameters.entrySet()) {
             logger.debug("Parameter name: {} value: {}", stringStringEntry.getKey(), stringStringEntry.getValue());
         }

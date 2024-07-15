@@ -33,8 +33,7 @@ public class HttpRequestParserImpl implements HttpRequestParser {
     }
 
     @Override
-    public HttpRequest parseBody(HttpRequest httpRequest, String body) throws BadGrammarException {
-        String decode = URLDecoder.decode(body, StandardCharsets.UTF_8);
-        return new HttpRequest(httpRequest.getRequestLine(), httpRequest.getHeader(), new Body(decode.getBytes()));
+    public HttpRequest parseBody(HttpRequest httpRequest, byte[] body) throws BadGrammarException {
+        return new HttpRequest(httpRequest.getRequestLine(), httpRequest.getHeader(), new Body(body));
     }
 }

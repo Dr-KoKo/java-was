@@ -8,5 +8,5 @@ public interface HttpRequestParser {
 
     HttpRequest parseHeader(HttpRequest httpRequest, String headers) throws BadGrammarException;
 
-    HttpRequest parseBody(HttpRequest httpRequest, String body) throws BadGrammarException;
+    HttpRequest parseBody(HttpRequest httpRequest, byte[] body) throws BadGrammarException;
 }

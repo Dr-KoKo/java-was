@@ -11,10 +11,10 @@ import server.processor.DelegatingProcessor;
 import server.processor.DelegatingProcessor.RequestMap;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public class ApplicationInitializer {
@@ -52,12 +52,7 @@ public class ApplicationInitializer {
     private static void registerProcessor(Method httpMethod, String path, java.lang.reflect.Method method,
                                           SingletonContainer container,
                                           Map<RequestMap, Function<HttpRequest, HttpResponse>> processors) {
-        processors.put(new RequestMap(httpMethod, path), (httpRequest) -> {
-            try {
-                return (HttpResponse) method.invoke(container.requestHandler(), httpRequest);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        processors.put(new RequestMap(httpMethod, Pattern.compile(path)),
+                (request) -> container.requestHandlerAdapter().handle(container.requestHandler(), method, request));
     }
 }

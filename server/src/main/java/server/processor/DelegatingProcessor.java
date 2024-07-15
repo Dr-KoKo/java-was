@@ -8,6 +8,7 @@ import server.http.model.startline.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 public class DelegatingProcessor implements HttpRequestProcessor {
     private static DelegatingProcessor instance;
@@ -27,16 +28,22 @@ public class DelegatingProcessor implements HttpRequestProcessor {
 
     @Override
     public HttpResponse process(HttpRequest request) {
-        Function<HttpRequest, HttpResponse> processor = handlerMap.get(new RequestMap(request.getMethod(), request.getRequestPath()));
-        if (processor == null) {
-            return null;
+        for (RequestMap requestMap : handlerMap.keySet()) {
+            if (requestMap.matches(request)) {
+                return handlerMap.get(requestMap).apply(request);
+            }
         }
-        return processor.apply(request);
+        return null;
     }
 
     @Override
     public boolean supports(HttpRequest request) {
-        return handlerMap.containsKey(new RequestMap(request.getMethod(), request.getRequestPath()));
+        for (RequestMap requestMap : handlerMap.keySet()) {
+            if (requestMap.matches(request)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void addRequestMappings(Map<RequestMap, Function<HttpRequest, HttpResponse>> processorSuppliers) {
@@ -49,7 +56,10 @@ public class DelegatingProcessor implements HttpRequestProcessor {
 
     public record RequestMap(
             Method method,
-            String requestPath
+            Pattern requestPath
     ) {
+        public boolean matches(HttpRequest request) {
+            return request.getMethod() == method && requestPath.matcher(request.getRequestPath()).matches();
+        }
     }
 }

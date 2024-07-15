@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.http.model.HttpRequest;
 import server.http.model.HttpResponse;
-import server.http.model.body.Body;
 import server.http.model.header.ContentType;
 import server.http.model.header.Header;
 import server.http.model.header.Headers;

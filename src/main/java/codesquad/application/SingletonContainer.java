@@ -1,14 +1,21 @@
 package codesquad.application;
 
+import codesquad.application.adapter.RequestHandlerAdapter;
+import codesquad.application.argumentresolver.ArgumentResolver;
+import codesquad.application.argumentresolver.NoOpArgumentResolver;
 import codesquad.application.handler.RequestHandler;
 import codesquad.application.parser.FormDataBodyParser;
 import codesquad.infra.MemorySessionStorage;
 import codesquad.infra.MemoryStorage;
 
+import java.util.List;
+
 public class SingletonContainer {
     private static SingletonContainer instance;
 
     private RequestHandler requestHandler;
+    private RequestHandlerAdapter requestHandlerAdapter;
+    private List<ArgumentResolver<?>> argumentResolvers;
 
     private SingletonContainer() {
     }
@@ -25,5 +32,19 @@ public class SingletonContainer {
             requestHandler = new RequestHandler(new FormDataBodyParser(), new MemoryStorage(), new MemorySessionStorage());
         }
         return requestHandler;
+    }
+
+    public RequestHandlerAdapter requestHandlerAdapter() {
+        if (requestHandlerAdapter == null) {
+            requestHandlerAdapter = new RequestHandlerAdapter(argumentResolvers());
+        }
+        return requestHandlerAdapter;
+    }
+
+    public List<ArgumentResolver<?>> argumentResolvers() {
+        if (argumentResolvers == null) {
+            argumentResolvers = List.of(new NoOpArgumentResolver());
+        }
+        return argumentResolvers;
     }
 }

@@ -63,7 +63,7 @@ public class RequestHandler {
     @GetMapping(path = "/user/list")
     public HttpResponse userList(HttpRequest request) {
         if (!isLogin(request)) {
-            return unauthorizedResponse();
+            return HttpResponse.unauthorized();
         }
         URL resourceUrl = getResourceUrl("/templates/user/list/index.html");
         List<User> all = userDao.findAll();
@@ -87,7 +87,7 @@ public class RequestHandler {
             headers.addHeader("Set-Cookie", "sid=" + sid + "; Path=/");
             return new HttpResponse(statusLine, headers, null);
         } else {
-            return foundResponse("/user/login?status=fail");
+            return HttpResponse.found("/user/login?status=fail");
         }
     }
 
@@ -100,7 +100,7 @@ public class RequestHandler {
 
         userDao.save(user);
 
-        return foundResponse("/");
+        return HttpResponse.found("/");
     }
 
     @PostMapping(path = "/logout")
@@ -124,22 +124,22 @@ public class RequestHandler {
 
     private HttpResponse resourceResponse(URL resourceUrl, HttpRequest httpRequest) {
         if (resourceUrl == null) {
-            return notFoundResponse();
+            return HttpResponse.notFound();
         }
         byte[] content;
         try {
             content = getContent(resourceUrl);
             content = replaceHeader(content, httpRequest);
         } catch (IOException e) {
-            return serverErrorResponse();
+            return HttpResponse.internalServerError();
         }
         String contentType = getContentType(resourceUrl.getFile());
-        return okResponse(content, contentType);
+        return HttpResponse.ok(content, contentType);
     }
 
     private HttpResponse resourceResponse(URL resourceUrl, HttpRequest httpRequest, List<User> all) {
         if (resourceUrl == null) {
-            return notFoundResponse();
+            return HttpResponse.notFound();
         }
         byte[] content;
         try {
@@ -147,10 +147,10 @@ public class RequestHandler {
             content = replaceHeader(content, httpRequest);
             content = replaceUser(content, all);
         } catch (IOException e) {
-            return serverErrorResponse();
+            return HttpResponse.internalServerError();
         }
         String contentType = getContentType(resourceUrl.getFile());
-        return okResponse(content, contentType);
+        return HttpResponse.ok(content, contentType);
     }
 
     private byte[] replaceUser(byte[] content, List<User> all) {
@@ -233,29 +233,5 @@ public class RequestHandler {
             logger.debug("Parameter name: {} value: {}", stringStringEntry.getKey(), stringStringEntry.getValue());
         }
         return parameters;
-    }
-
-    private HttpResponse okResponse(byte[] content, String contentType) {
-        Headers headers = new Headers();
-        headers.addHeader("Content-Type", contentType);
-        return new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.OK), headers, new Body(content));
-    }
-
-    private HttpResponse foundResponse(String location) {
-        Headers headers = new Headers();
-        headers.addHeader("Location", location);
-        return new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.FOUND), headers, null);
-    }
-
-    private HttpResponse notFoundResponse() {
-        return new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.NOT_FOUND));
-    }
-
-    private HttpResponse unauthorizedResponse() {
-        return new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.UNAUTHORIZED));
-    }
-
-    private HttpResponse serverErrorResponse() {
-        return new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.INTERNAL_SERVER_ERROR));
     }
 }

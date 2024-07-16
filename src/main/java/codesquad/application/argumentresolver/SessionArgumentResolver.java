@@ -3,9 +3,10 @@ package codesquad.application.argumentresolver;
 import codesquad.annotation.api.parameter.SessionAttribute;
 import codesquad.application.handler.SessionStorage;
 import codesquad.application.model.User;
-import server.exception.UnauthorizedException;
+import server.exception.ResponseException;
 import server.http.model.HttpRequest;
 import server.http.model.header.Header;
+import server.http.model.startline.StatusCode;
 
 import java.lang.reflect.Parameter;
 
@@ -22,7 +23,7 @@ public class SessionArgumentResolver implements ArgumentResolver<User> {
         String sessionId = getSessionId(request);
         User session = (User) sessionStorage.get(sessionId);
         if (annotation.required() && session == null) {
-            throw new UnauthorizedException("Session not found");
+            throw new ResponseException("Session not found", StatusCode.UNAUTHORIZED);
         }
         return session;
     }

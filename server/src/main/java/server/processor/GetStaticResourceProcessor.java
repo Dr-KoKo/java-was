@@ -7,7 +7,6 @@ import server.http.model.HttpResponse;
 import server.http.model.body.Body;
 import server.http.model.header.ContentType;
 import server.http.model.header.Headers;
-import server.http.model.startline.Method;
 import server.http.model.startline.StatusCode;
 import server.http.model.startline.StatusLine;
 import server.http.model.startline.Version;
@@ -37,8 +36,10 @@ public class GetStaticResourceProcessor implements HttpRequestProcessor {
     }
 
     @Override
-    public boolean supports(HttpRequest request) {
-        return request.getMethod() == Method.GET;
+    public boolean matches(HttpRequest request) {
+        String requestPath = request.getRequestPath();
+        URL resourceUrl = getResourceUrl(requestPath);
+        return resourceUrl != null;
     }
 
     private URL getResourceUrl(String requestPath) {

@@ -6,6 +6,7 @@ public enum StatusCode {
     BAD_REQUEST(400, "Bad Request"),
     NOT_FOUND(404, "Not Found"),
     UNAUTHORIZED(401, "Unauthorized"),
+    Method_Not_Allowed(405, "Method Not Allowed"),
     INTERNAL_SERVER_ERROR(500, "Internal Server Error");
 
     private final int code;

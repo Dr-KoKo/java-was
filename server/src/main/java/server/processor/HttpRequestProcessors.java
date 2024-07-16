@@ -1,8 +1,10 @@
 package server.processor;
 
 
+import server.exception.ResponseException;
 import server.http.model.HttpRequest;
 import server.http.model.HttpResponse;
+import server.http.model.startline.StatusCode;
 
 import java.util.List;
 
@@ -15,20 +17,25 @@ public class HttpRequestProcessors implements HttpRequestProcessor {
 
     @Override
     public HttpResponse process(HttpRequest request) {
-        HttpResponse response;
+        boolean found = false;
         for (HttpRequestProcessor processor : processors) {
-            if (processor.supports(request)) {
-                response = processor.process(request);
+            if (processor.matches(request)) {
+                found = true;
+                HttpResponse response = processor.process(request);
                 if (response != null) {
                     return response;
                 }
             }
         }
-        throw new UnsupportedOperationException();
+        if (found) {
+            throw new ResponseException("Method not allowed", StatusCode.Method_Not_Allowed);
+        } else {
+            throw new ResponseException("Not found", StatusCode.NOT_FOUND);
+        }
     }
 
     @Override
-    public boolean supports(HttpRequest request) {
+    public boolean matches(HttpRequest request) {
         throw new UnsupportedOperationException();
     }
 }

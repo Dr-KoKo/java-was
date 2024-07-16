@@ -29,7 +29,7 @@ public class DelegatingProcessor implements HttpRequestProcessor {
     @Override
     public HttpResponse process(HttpRequest request) {
         for (RequestMap requestMap : handlerMap.keySet()) {
-            if (requestMap.matches(request)) {
+            if (requestMap.matches(request) && requestMap.method() == request.getMethod()) {
                 return handlerMap.get(requestMap).apply(request);
             }
         }
@@ -37,7 +37,7 @@ public class DelegatingProcessor implements HttpRequestProcessor {
     }
 
     @Override
-    public boolean supports(HttpRequest request) {
+    public boolean matches(HttpRequest request) {
         for (RequestMap requestMap : handlerMap.keySet()) {
             if (requestMap.matches(request)) {
                 return true;
@@ -59,7 +59,7 @@ public class DelegatingProcessor implements HttpRequestProcessor {
             Pattern requestPath
     ) {
         public boolean matches(HttpRequest request) {
-            return request.getMethod() == method && requestPath.matcher(request.getRequestPath()).matches();
+            return requestPath.matcher(request.getRequestPath()).matches();
         }
     }
 }

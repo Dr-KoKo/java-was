@@ -2,6 +2,7 @@ package codesquad.application.adapter;
 
 import codesquad.application.argumentresolver.ArgumentResolver;
 import codesquad.application.handler.RequestHandler;
+import codesquad.application.returnvaluehandler.ReturnValueHandler;
 import server.http.model.HttpRequest;
 import server.http.model.HttpResponse;
 
@@ -13,33 +14,42 @@ import java.util.List;
 
 public class RequestHandlerAdapter {
     private final List<ArgumentResolver<?>> argumentResolvers = new ArrayList<>();
+    private final List<ReturnValueHandler> returnValueHandlers = new ArrayList<>();
 
-    public RequestHandlerAdapter(List<ArgumentResolver<?>> argumentResolvers) {
+    public RequestHandlerAdapter(List<ArgumentResolver<?>> argumentResolvers, List<ReturnValueHandler> returnValueHandlers) {
         this.argumentResolvers.addAll(argumentResolvers);
+        this.returnValueHandlers.addAll(returnValueHandlers);
     }
 
     public HttpResponse handle(RequestHandler target, Method method, HttpRequest request) {
         Parameter[] parameters = method.getParameters();
         Object[] arguments = new Object[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
-            arguments[i] = resolve(parameters[i], request);
-            if (arguments[i] == null) {
-                throw new UnsupportedOperationException("unsupported parameter: " + parameters[i]);
-            }
+            arguments[i] = resolveArgument(parameters[i], request);
         }
         try {
-            return (HttpResponse) method.invoke(target, arguments);
+            Object result = method.invoke(target, arguments);
+            return handleReturnValue(result);
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private Object resolve(Parameter parameter, HttpRequest request) {
+    private HttpResponse handleReturnValue(Object result) {
+        for (ReturnValueHandler handler : returnValueHandlers) {
+            if (handler.support(result)) {
+                return handler.handle(result);
+            }
+        }
+        throw new UnsupportedOperationException("No Handler found for result" + result);
+    }
+
+    private Object resolveArgument(Parameter parameter, HttpRequest request) {
         for (ArgumentResolver<?> resolver : argumentResolvers) {
             if (resolver.support(parameter, request)) {
                 return resolver.resolve(parameter, request);
             }
         }
-        return null;
+        throw new UnsupportedOperationException("No resolver found for parameter " + parameter.getName());
     }
 }

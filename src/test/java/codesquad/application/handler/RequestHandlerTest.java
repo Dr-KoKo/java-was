@@ -5,6 +5,7 @@ import codesquad.application.argumentresolver.FormUrlEncodedResolver;
 import codesquad.application.argumentresolver.NoOpArgumentResolver;
 import codesquad.application.fixture.HttpRequestFixture;
 import codesquad.application.model.User;
+import codesquad.application.returnvaluehandler.ModelViewHandler;
 import codesquad.infra.MemorySessionStorage;
 import org.junit.jupiter.api.*;
 import server.http.model.HttpRequest;
@@ -25,7 +26,7 @@ class RequestHandlerTest implements HttpRequestFixture {
         mockUserDao = new MockUserDao();
         memorySessionStorage = new MemorySessionStorage();
         requestHandler = new RequestHandler(mockUserDao, memorySessionStorage);
-        requestHandlerAdapter = new RequestHandlerAdapter(List.of(new NoOpArgumentResolver(), new FormUrlEncodedResolver()));
+        requestHandlerAdapter = new RequestHandlerAdapter(List.of(new NoOpArgumentResolver(), new FormUrlEncodedResolver()), List.of(new ModelViewHandler()));
     }
 
     @DisplayName("html을 요청하면")

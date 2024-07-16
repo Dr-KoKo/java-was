@@ -7,6 +7,9 @@ import codesquad.application.argumentresolver.NoOpArgumentResolver;
 import codesquad.application.argumentresolver.SessionArgumentResolver;
 import codesquad.application.handler.RequestHandler;
 import codesquad.application.handler.SessionStorage;
+import codesquad.application.returnvaluehandler.ModelViewHandler;
+import codesquad.application.returnvaluehandler.NoOpViewHandler;
+import codesquad.application.returnvaluehandler.ReturnValueHandler;
 import codesquad.infra.MemorySessionStorage;
 import codesquad.infra.MemoryStorage;
 
@@ -18,6 +21,7 @@ public class SingletonContainer {
     private RequestHandler requestHandler;
     private RequestHandlerAdapter requestHandlerAdapter;
     private List<ArgumentResolver<?>> argumentResolvers;
+    private List<ReturnValueHandler> returnValueHandlers;
     private SessionStorage sessionStorage;
 
     private SingletonContainer() {
@@ -39,7 +43,7 @@ public class SingletonContainer {
 
     public RequestHandlerAdapter requestHandlerAdapter() {
         if (requestHandlerAdapter == null) {
-            requestHandlerAdapter = new RequestHandlerAdapter(argumentResolvers());
+            requestHandlerAdapter = new RequestHandlerAdapter(argumentResolvers(), returnValueHandlers());
         }
         return requestHandlerAdapter;
     }
@@ -49,6 +53,13 @@ public class SingletonContainer {
             argumentResolvers = List.of(new NoOpArgumentResolver(), new FormUrlEncodedResolver(), new SessionArgumentResolver(sessionStorage()));
         }
         return argumentResolvers;
+    }
+
+    public List<ReturnValueHandler> returnValueHandlers() {
+        if (returnValueHandlers == null) {
+            returnValueHandlers = List.of(new NoOpViewHandler(), new ModelViewHandler());
+        }
+        return returnValueHandlers;
     }
 
     public SessionStorage sessionStorage() {

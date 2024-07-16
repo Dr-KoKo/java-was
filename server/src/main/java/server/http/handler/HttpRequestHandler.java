@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import server.connection.ConnectionManager;
 import server.connection.OneTimeConnectionManager;
 import server.exception.BadGrammarException;
+import server.exception.UnauthorizedException;
 import server.http.model.HttpRequest;
 import server.http.model.HttpResponse;
 import server.http.model.body.Body;
@@ -48,8 +49,11 @@ public class HttpRequestHandler implements Runnable {
             } catch (BadGrammarException e) {
                 logger.info("exception", e);
                 responseHttp(new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.BAD_REQUEST)));
-            } catch (Exception exception) {
-                logger.info("exception", exception);
+            } catch (UnauthorizedException e) {
+                logger.info("exception", e);
+                responseHttp(new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.UNAUTHORIZED)));
+            } catch (Exception e) {
+                logger.info("exception", e);
                 responseHttp(new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.INTERNAL_SERVER_ERROR)));
             } finally {
                 connectionManager.incrementRequestCounter();

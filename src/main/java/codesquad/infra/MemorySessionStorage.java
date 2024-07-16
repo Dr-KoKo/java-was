@@ -20,6 +20,9 @@ public class MemorySessionStorage implements SessionStorage {
 
     @Override
     public Object get(String sid) {
+        if (sid == null) {
+            return null;
+        }
         return sessionStorage.get(sid);
     }
 

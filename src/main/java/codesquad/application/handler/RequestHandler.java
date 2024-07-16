@@ -3,6 +3,7 @@ package codesquad.application.handler;
 import codesquad.annotation.api.GetMapping;
 import codesquad.annotation.api.PostMapping;
 import codesquad.annotation.api.parameter.FormData;
+import codesquad.annotation.api.parameter.SessionAttribute;
 import codesquad.application.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,10 +59,7 @@ public class RequestHandler {
     }
 
     @GetMapping(path = "/user/list")
-    public HttpResponse userList(HttpRequest request) {
-        if (!isLogin(request)) {
-            return HttpResponse.unauthorized();
-        }
+    public HttpResponse userList(@SessionAttribute User user, HttpRequest request) {
         URL resourceUrl = getResourceUrl("/templates/user/list/index.html");
         List<User> all = userDao.findAll();
         return resourceResponse(resourceUrl, request, all);

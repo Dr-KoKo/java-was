@@ -1,7 +1,7 @@
 package codesquad.application;
 
-import codesquad.annotation.GetMapping;
-import codesquad.annotation.PostMapping;
+import codesquad.annotation.api.GetMapping;
+import codesquad.annotation.api.PostMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.http.model.HttpRequest;

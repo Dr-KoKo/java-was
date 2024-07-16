@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  h2database:
+    image: buildo/h2database
+    container_name: my-h2
+    ports:
+      - "8082:8082"  # Port for web interface
+      - "9092:9092"  # Default TCP port
+    environment:
+      - H2DATA=/h2-data  # Set the H2 data directory
+    volumes:
+      - h2-data:/h2-data  # Persistent storage for database files
+      - ./initdb:/docker-entrypoint-initdb.d  # Initialization scripts
+
+volumes:
+  h2-data:

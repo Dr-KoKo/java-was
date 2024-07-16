@@ -2,9 +2,9 @@ package codesquad.application;
 
 import codesquad.application.adapter.RequestHandlerAdapter;
 import codesquad.application.argumentresolver.ArgumentResolver;
+import codesquad.application.argumentresolver.FormUrlEncodedResolver;
 import codesquad.application.argumentresolver.NoOpArgumentResolver;
 import codesquad.application.handler.RequestHandler;
-import codesquad.application.parser.FormDataBodyParser;
 import codesquad.infra.MemorySessionStorage;
 import codesquad.infra.MemoryStorage;
 
@@ -29,7 +29,7 @@ public class SingletonContainer {
 
     public RequestHandler requestHandler() {
         if (requestHandler == null) {
-            requestHandler = new RequestHandler(new FormDataBodyParser(), new MemoryStorage(), new MemorySessionStorage());
+            requestHandler = new RequestHandler(new MemoryStorage(), new MemorySessionStorage());
         }
         return requestHandler;
     }
@@ -43,7 +43,7 @@ public class SingletonContainer {
 
     public List<ArgumentResolver<?>> argumentResolvers() {
         if (argumentResolvers == null) {
-            argumentResolvers = List.of(new NoOpArgumentResolver());
+            argumentResolvers = List.of(new NoOpArgumentResolver(), new FormUrlEncodedResolver());
         }
         return argumentResolvers;
     }

@@ -22,8 +22,8 @@ public interface HttpRequestFixture {
 
     default Headers formDataHeader(int contentLength) {
         Headers headers = new Headers();
-        headers.addHeader("content-type", "application/x-www-form-urlencoded");
-        headers.addHeader("content-length", String.valueOf(contentLength));
+        headers.addHeader("Content-Type", "application/x-www-form-urlencoded");
+        headers.addHeader("Content-Length", String.valueOf(contentLength));
         return headers;
     }
 

@@ -28,6 +28,15 @@ public enum ContentType {
         return ContentType.DEFAULT;
     }
 
+    public static ContentType of(String value) {
+        for (ContentType contentType : ContentType.values()) {
+            if (contentType.contentType.equals(value)) {
+                return contentType;
+            }
+        }
+        return null;
+    }
+
     public String getExtension() {
         return extension;
     }

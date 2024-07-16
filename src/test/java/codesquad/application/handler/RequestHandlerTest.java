@@ -1,5 +1,8 @@
 package codesquad.application.handler;
 
+import codesquad.application.adapter.RequestHandlerAdapter;
+import codesquad.application.argumentresolver.FormUrlEncodedResolver;
+import codesquad.application.argumentresolver.NoOpArgumentResolver;
 import codesquad.application.fixture.HttpRequestFixture;
 import codesquad.application.model.User;
 import codesquad.infra.MemorySessionStorage;
@@ -8,20 +11,56 @@ import server.http.model.HttpRequest;
 import server.http.model.HttpResponse;
 import server.http.model.startline.Method;
 
+import java.util.List;
 import java.util.Map;
 
 class RequestHandlerTest implements HttpRequestFixture {
-    private StubBodyParser stubBodyParser;
     private MockUserDao mockUserDao;
     private MemorySessionStorage memorySessionStorage;
     private RequestHandler requestHandler;
+    private RequestHandlerAdapter requestHandlerAdapter;
 
     @BeforeEach
     void setUp() {
-        stubBodyParser = new StubBodyParser();
         mockUserDao = new MockUserDao();
         memorySessionStorage = new MemorySessionStorage();
-        requestHandler = new RequestHandler(stubBodyParser, mockUserDao, memorySessionStorage);
+        requestHandler = new RequestHandler(mockUserDao, memorySessionStorage);
+        requestHandlerAdapter = new RequestHandlerAdapter(List.of(new NoOpArgumentResolver(), new FormUrlEncodedResolver()));
+    }
+
+    @DisplayName("html을 요청하면")
+    @Nested
+    class WhenRequestDynamicResource {
+        @DisplayName("/ 요청은")
+        @Nested
+        class index {
+            @DisplayName("세션이 있으면 login_header를 반환한다.")
+            @Test
+            void login_header() throws NoSuchMethodException {
+                // when
+                HttpRequest httpRequest = simpleRequest(Method.GET, "/");
+                HttpResponse httpResponse = requestHandlerAdapter.handle(requestHandler, requestHandler.getClass().getMethod("index", HttpRequest.class), httpRequest);
+
+                // then
+                Assertions.assertEquals(httpResponse.getStatusLine().toString(), "HTTP/1.1 200 OK\n");
+            }
+
+            @DisplayName("세션이 없으면 not_login_header를 반환한다.")
+            @Test
+            void not_login_header() throws NoSuchMethodException {
+                // when
+                HttpRequest httpRequest = simpleRequest(Method.GET, "/");
+                HttpResponse httpResponse = requestHandlerAdapter.handle(requestHandler, requestHandler.getClass().getMethod("index", HttpRequest.class), httpRequest);
+
+                // then
+                Assertions.assertEquals(httpResponse.getStatusLine().toString(), "HTTP/1.1 200 OK\n");
+            }
+        }
+
+        @DisplayName("/user/registration 요청은")
+        @Nested
+        class createUser {
+        }
     }
 
     @DisplayName("회원가입이 성공하면")
@@ -29,10 +68,10 @@ class RequestHandlerTest implements HttpRequestFixture {
     class WhenCreateSuccess {
         @DisplayName("회원정보가 저장된다.")
         @Test
-        void save() {
+        void save() throws NoSuchMethodException {
             // when
             HttpRequest httpRequest = formDataRequest(Method.POST, "/create", Map.of("userId", "donghar", "password", "password", "nickname", "dr-koko"));
-            HttpResponse httpResponse = requestHandler.create(httpRequest);
+            HttpResponse httpResponse = requestHandlerAdapter.handle(requestHandler, requestHandler.getClass().getMethod("create", Map.class), httpRequest);
 
             // then
             Assertions.assertEquals(mockUserDao.getCountSave(), 1);
@@ -40,10 +79,10 @@ class RequestHandlerTest implements HttpRequestFixture {
 
         @DisplayName("/로 redirect한다.")
         @Test
-        void redirect() {
+        void redirect() throws NoSuchMethodException {
             // when
             HttpRequest httpRequest = formDataRequest(Method.POST, "/create", Map.of("userId", "donghar", "password", "password", "nickname", "dr-koko"));
-            HttpResponse httpResponse = requestHandler.create(httpRequest);
+            HttpResponse httpResponse = requestHandlerAdapter.handle(requestHandler, requestHandler.getClass().getMethod("create", Map.class), httpRequest);
 
             // then
             Assertions.assertEquals(httpResponse.getStatusLine().toString(), "HTTP/1.1 302 Found\n");
@@ -56,13 +95,13 @@ class RequestHandlerTest implements HttpRequestFixture {
     class WhenLoginSuccess {
         @DisplayName("Cookie를 설정한다.")
         @Test
-        void setCookie() {
+        void setCookie() throws NoSuchMethodException {
             // given
             mockUserDao.stub(new User("donghar", "password", "dr-koko"));
 
             // when
             HttpRequest httpRequest = formDataRequest(Method.POST, "/login", Map.of("userId", "donghar", "password", "password"));
-            HttpResponse httpResponse = requestHandler.login(httpRequest);
+            HttpResponse httpResponse = requestHandlerAdapter.handle(requestHandler, requestHandler.getClass().getMethod("login", Map.class), httpRequest);
 
             // then
             Assertions.assertNotNull(httpResponse.getHeader().get("Set-Cookie"));
@@ -70,13 +109,13 @@ class RequestHandlerTest implements HttpRequestFixture {
 
         @DisplayName("/l로 redirect한다.")
         @Test
-        void redirect() {
+        void redirect() throws NoSuchMethodException {
             // given
             mockUserDao.stub(new User("donghar", "password", "dr-koko"));
 
             // when
             HttpRequest httpRequest = formDataRequest(Method.POST, "/login", Map.of("userId", "donghar", "password", "password"));
-            HttpResponse httpResponse = requestHandler.login(httpRequest);
+            HttpResponse httpResponse = requestHandlerAdapter.handle(requestHandler, requestHandler.getClass().getMethod("login", Map.class), httpRequest);
 
             // then
             Assertions.assertEquals(httpResponse.getStatusLine().toString(), "HTTP/1.1 302 Found\n");
@@ -89,13 +128,13 @@ class RequestHandlerTest implements HttpRequestFixture {
     class WhenLoginFail {
         @DisplayName("/user/login?status=fail로 redirect한다.")
         @Test
-        void redirect() {
+        void redirect() throws NoSuchMethodException {
             // given
             mockUserDao.stub(new User("donghar", "xx", "dr-koko"));
 
             // when
             HttpRequest httpRequest = formDataRequest(Method.POST, "/login", Map.of("userId", "donghar", "password", "password"));
-            HttpResponse httpResponse = requestHandler.login(httpRequest);
+            HttpResponse httpResponse = requestHandlerAdapter.handle(requestHandler, requestHandler.getClass().getMethod("login", Map.class), httpRequest);
 
             // then
             Assertions.assertEquals(httpResponse.getStatusLine().toString(), "HTTP/1.1 302 Found\n");

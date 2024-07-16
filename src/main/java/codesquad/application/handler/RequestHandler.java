@@ -1,9 +1,9 @@
 package codesquad.application.handler;
 
-import codesquad.annotation.GetMapping;
-import codesquad.annotation.PostMapping;
+import codesquad.annotation.api.GetMapping;
+import codesquad.annotation.api.PostMapping;
+import codesquad.annotation.api.parameter.FormData;
 import codesquad.application.model.User;
-import codesquad.application.parser.BodyParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.http.model.HttpRequest;
@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -30,12 +29,10 @@ import java.util.regex.Pattern;
 public class RequestHandler {
     private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
 
-    private final BodyParser parser;
     private final UserDao userDao;
     private final SessionStorage sessionStorage;
 
-    public RequestHandler(BodyParser parser, UserDao userDao, SessionStorage sessionStorage) {
-        this.parser = parser;
+    public RequestHandler(UserDao userDao, SessionStorage sessionStorage) {
         this.userDao = userDao;
         this.sessionStorage = sessionStorage;
     }
@@ -71,12 +68,10 @@ public class RequestHandler {
     }
 
     @PostMapping(path = "/user/login")
-    public HttpResponse login(HttpRequest request) {
-        Map<String, String> parameters = getBody(request);
+    public HttpResponse login(@FormData Map<String, String> parameters) {
         String userId = parameters.get("userId");
         String password = parameters.get("password");
         logger.debug("Login request for user {} with password {}", userId, password);
-
         Optional<User> findUser = userDao.findByUserId(userId);
         boolean matches = findUser.isPresent() && findUser.get().matchesPassword(password);
         if (matches) {
@@ -92,14 +87,10 @@ public class RequestHandler {
     }
 
     @PostMapping(path = "/user/create")
-    public HttpResponse create(HttpRequest request) {
-        Map<String, String> parameters = getBody(request);
-        // store user
+    public HttpResponse create(@FormData Map<String, String> parameters) {
         User user = new User(parameters.get("userId"), parameters.get("password"), parameters.get("nickname"));
         logger.debug("Creating request processor for user {}", user);
-
         userDao.save(user);
-
         return HttpResponse.found("/");
     }
 
@@ -225,13 +216,5 @@ public class RequestHandler {
             }
         }
         return null;
-    }
-
-    private Map<String, String> getBody(HttpRequest request) {
-        Map<String, String> parameters = parser.parse(request.getBody().getMessage());
-        for (Map.Entry<String, String> stringStringEntry : parameters.entrySet()) {
-            logger.debug("Parameter name: {} value: {}", stringStringEntry.getKey(), stringStringEntry.getValue());
-        }
-        return parameters;
     }
 }

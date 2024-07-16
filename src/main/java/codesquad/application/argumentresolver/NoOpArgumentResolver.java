@@ -6,12 +6,12 @@ import java.lang.reflect.Parameter;
 
 public class NoOpArgumentResolver implements ArgumentResolver<HttpRequest> {
     @Override
-    public HttpRequest resolve(HttpRequest request) {
+    public HttpRequest resolve(Parameter parameter, HttpRequest request) {
         return request;
     }
 
     @Override
-    public boolean support(Parameter parameter) {
-        return HttpRequest.class.isAssignableFrom(parameter.getType());
+    public boolean support(Parameter parameter, HttpRequest request) {
+        return parameter.getType().isAssignableFrom(HttpRequest.class);
     }
 }

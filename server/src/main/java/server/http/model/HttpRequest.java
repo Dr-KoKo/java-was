@@ -1,6 +1,7 @@
 package server.http.model;
 
 import server.http.model.body.Body;
+import server.http.model.header.ContentType;
 import server.http.model.header.Header;
 import server.http.model.header.Headers;
 import server.http.model.startline.Method;
@@ -67,5 +68,9 @@ public class HttpRequest {
             result.put(query.split("=")[0], query.split("=")[1]);
         }
         return result;
+    }
+
+    public ContentType getContentType() {
+        return ContentType.of(headers.get(Header.CONTENT_TYPE.getFieldName()));
     }
 }

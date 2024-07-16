@@ -22,10 +22,9 @@ public class RequestHandlerAdapter {
         Parameter[] parameters = method.getParameters();
         Object[] arguments = new Object[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
-            Parameter parameter = parameters[i];
-            arguments[i] = resolve(parameter, request);
+            arguments[i] = resolve(parameters[i], request);
             if (arguments[i] == null) {
-                throw new UnsupportedOperationException("unsupported parameter: " + parameter);
+                throw new UnsupportedOperationException("unsupported parameter: " + parameters[i]);
             }
         }
         try {
@@ -37,8 +36,8 @@ public class RequestHandlerAdapter {
 
     private Object resolve(Parameter parameter, HttpRequest request) {
         for (ArgumentResolver<?> resolver : argumentResolvers) {
-            if (resolver.support(parameter)) {
-                return resolver.resolve(request);
+            if (resolver.support(parameter, request)) {
+                return resolver.resolve(parameter, request);
             }
         }
         return null;

@@ -5,7 +5,7 @@ import server.http.model.HttpRequest;
 import java.lang.reflect.Parameter;
 
 public interface ArgumentResolver<T> {
-    T resolve(HttpRequest request);
+    T resolve(Parameter parameter, HttpRequest request);
 
-    boolean support(Parameter parameter);
+    boolean support(Parameter parameter, HttpRequest request);
 }

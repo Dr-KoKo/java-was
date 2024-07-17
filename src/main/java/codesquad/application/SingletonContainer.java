@@ -10,9 +10,7 @@ import codesquad.application.handler.SessionStorage;
 import codesquad.application.returnvaluehandler.ModelViewHandler;
 import codesquad.application.returnvaluehandler.NoOpViewHandler;
 import codesquad.application.returnvaluehandler.ReturnValueHandler;
-import codesquad.infra.MemoryArticleStorage;
-import codesquad.infra.MemorySessionStorage;
-import codesquad.infra.MemoryStorage;
+import codesquad.infra.*;
 
 import java.util.List;
 
@@ -37,7 +35,7 @@ public class SingletonContainer {
 
     public RequestHandler requestHandler() {
         if (requestHandler == null) {
-            requestHandler = new RequestHandler(new MemoryStorage(), new MemoryArticleStorage(), sessionStorage());
+            requestHandler = new RequestHandler(new JdbcUserStorage(), new JdbcArticleStorage(), sessionStorage());
         }
         return requestHandler;
     }

@@ -17,6 +17,7 @@ import java.util.Map;
 
 class RequestHandlerTest implements HttpRequestFixture {
     private MockUserDao mockUserDao;
+    private MockArticleDao mockArticleDao;
     private MemorySessionStorage memorySessionStorage;
     private RequestHandler requestHandler;
     private RequestHandlerAdapter requestHandlerAdapter;
@@ -25,7 +26,7 @@ class RequestHandlerTest implements HttpRequestFixture {
     void setUp() {
         mockUserDao = new MockUserDao();
         memorySessionStorage = new MemorySessionStorage();
-        requestHandler = new RequestHandler(mockUserDao, memorySessionStorage);
+        requestHandler = new RequestHandler(mockUserDao, mockArticleDao, memorySessionStorage);
         requestHandlerAdapter = new RequestHandlerAdapter(List.of(new NoOpArgumentResolver(), new FormUrlEncodedResolver()), List.of(new ModelViewHandler()));
     }
 

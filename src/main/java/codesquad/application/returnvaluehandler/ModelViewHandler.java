@@ -1,5 +1,6 @@
 package codesquad.application.returnvaluehandler;
 
+import codesquad.application.model.Article;
 import codesquad.application.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,9 +9,9 @@ import server.http.model.header.ContentType;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,10 +22,7 @@ public class ModelViewHandler implements ReturnValueHandler {
     public HttpResponse handle(Object returnValue) {
         ModelView mv = (ModelView) returnValue;
         URL resourceUrl = getResourceUrl(mv.getFilePath());
-        if (mv.getFilePath().equals("/templates/user/list/index.html")) {
-            return resourceResponse(resourceUrl, mv.getModel().get("user") != null, (List<User>) mv.getModel().get("users"));
-        }
-        return resourceResponse(resourceUrl, mv.getModel().get("user") != null);
+        return resourceResponse(resourceUrl, mv.getModel());
     }
 
     @Override
@@ -32,14 +30,23 @@ public class ModelViewHandler implements ReturnValueHandler {
         return ModelView.class.isAssignableFrom(returnValue.getClass());
     }
 
-    private HttpResponse resourceResponse(URL resourceUrl, boolean isLogin) {
+    private HttpResponse resourceResponse(URL resourceUrl, Map<String, Object> model) {
         if (resourceUrl == null) {
             return HttpResponse.notFound();
         }
         byte[] content;
         try {
             content = getContent(resourceUrl);
-            content = replaceHeader(content, isLogin);
+            content = replaceHeader(content, model.containsKey("user"));
+            if (model.containsKey("users")) {
+                content = replaceUser(content, (List<User>) model.get("users"));
+            }
+            if (model.containsKey("articles")) {
+                content = replaceArticle(content, (List<Article>) model.get("articles"));
+            }
+            if (model.containsKey("code")) {
+                content = replaceError(content, model.get("code"), model.get("message"));
+            }
         } catch (IOException e) {
             return HttpResponse.internalServerError();
         }
@@ -47,20 +54,27 @@ public class ModelViewHandler implements ReturnValueHandler {
         return HttpResponse.ok(content, contentType);
     }
 
-    private HttpResponse resourceResponse(URL resourceUrl, boolean isLogin, List<User> all) {
-        if (resourceUrl == null) {
-            return HttpResponse.notFound();
-        }
-        byte[] content;
+    private byte[] replaceError(byte[] content, Object code, Object message) {
+        String target = new String(content);
+        String replace = target.replace("{{code}}", code.toString());
+        replace = replace.replace("{{message}}", message.toString());
+        return replace.getBytes();
+    }
+
+    private byte[] replaceHeader(byte[] content, boolean isLogin) {
+        String target = new String(content);
+        String marker = "{{header}}";
+        String block;
         try {
-            content = getContent(resourceUrl);
-            content = replaceHeader(content, isLogin);
-            content = replaceUser(content, all);
+            URL replcaementUrl = isLogin ?
+                    getResourceUrl("/templates/block/header/login_header.html") : getResourceUrl("/templates/block/header/not_login_header.html");
+            byte[] replacementContent = getContent(replcaementUrl);
+            block = new String(replacementContent);
         } catch (IOException e) {
-            return HttpResponse.internalServerError();
+            throw new RuntimeException(e);
         }
-        String contentType = getContentType(resourceUrl.getFile());
-        return HttpResponse.ok(content, contentType);
+        String result = target.replace(marker, block);
+        return result.getBytes();
     }
 
     private byte[] replaceUser(byte[] content, List<User> all) {
@@ -82,26 +96,30 @@ public class ModelViewHandler implements ReturnValueHandler {
         return result.getBytes();
     }
 
-    private byte[] replaceHeader(byte[] content, boolean isLogin) throws UnsupportedEncodingException {
+    private byte[] replaceArticle(byte[] content, List<Article> articles) {
         String target = new String(content);
-        String regex = "<header\\b[^>]*>(.*?)</header>";
-        Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
-        String replacement;
+        String marker = "{{article}}";
+        String block;
         try {
-            URL replcaementUrl = isLogin ?
-                    getResourceUrl("/templates/block/header/login_header.html") : getResourceUrl("/templates/block/header/not_login_header.html");
+            URL replcaementUrl = getResourceUrl("/templates/block/article/article.html");
             byte[] replacementContent = getContent(replcaementUrl);
-            replacement = new String(replacementContent);
+            block = new String(replacementContent);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-        Matcher matcher = pattern.matcher(target);
-        String result = matcher.replaceAll(replacement);
+        StringBuilder replacement = new StringBuilder();
+        for (Article article : articles) {
+            String temp;
+            temp = block.replace("{{title}}", article.getTitle());
+            temp = block.replace("{{account}}", article.getAuthorId());
+            temp = temp.replace("{{content}}", article.getContent());
+            replacement.append(temp);
+        }
+        String result = target.replace(marker, replacement);
         return result.getBytes();
     }
 
-    private static byte[] getContent(URL resourceUrl) throws IOException {
+    private byte[] getContent(URL resourceUrl) throws IOException {
         try (InputStream resourceStream = resourceUrl.openStream()) {
             return resourceStream.readAllBytes();
         } catch (IOException e) {

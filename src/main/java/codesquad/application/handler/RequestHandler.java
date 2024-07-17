@@ -4,6 +4,7 @@ import codesquad.annotation.api.GetMapping;
 import codesquad.annotation.api.PostMapping;
 import codesquad.annotation.api.parameter.FormData;
 import codesquad.annotation.api.parameter.SessionAttribute;
+import codesquad.application.model.Article;
 import codesquad.application.model.User;
 import codesquad.application.returnvaluehandler.ModelView;
 import org.slf4j.Logger;
@@ -22,20 +23,28 @@ public class RequestHandler {
     private static final Logger logger = LoggerFactory.getLogger(RequestHandler.class);
 
     private final UserDao userDao;
+    private final ArticleDao articleDao;
     private final SessionStorage sessionStorage;
 
-    public RequestHandler(UserDao userDao, SessionStorage sessionStorage) {
+    public RequestHandler(UserDao userDao, ArticleDao articleDao, SessionStorage sessionStorage) {
         this.userDao = userDao;
+        this.articleDao = articleDao;
         this.sessionStorage = sessionStorage;
     }
 
     @GetMapping(path = "/")
     public ModelView index(@SessionAttribute(required = false) User user) {
-        return new ModelView("/templates/index.html", user == null ? Collections.emptyMap() : Map.of("user", user));
+        Map<String, Object> model = new HashMap<>();
+        if (user != null) {
+            model.put("user", user);
+        }
+        List<Article> articles = articleDao.findAllArticle();
+        model.put("articles", articles);
+        return new ModelView("/templates/index.html", model);
     }
 
     @GetMapping(path = "/user/registration")
-    public ModelView createUser(@SessionAttribute(required = false) User user, HttpRequest request) {
+    public ModelView createUser(@SessionAttribute(required = false) User user) {
         return new ModelView("/templates/user/registration/index.html", user == null ? Collections.emptyMap() : Map.of("user", user));
     }
 
@@ -48,9 +57,12 @@ public class RequestHandler {
     }
 
     @GetMapping(path = "/user/list")
-    public ModelView userList(@SessionAttribute User user, HttpRequest request) {
-        List<User> all = userDao.findAll();
-        return new ModelView("/templates/user/list/index.html", Map.of("user", user, "users", all));
+    public ModelView userList(@SessionAttribute User user) {
+        Map<String, Object> model = new HashMap<>();
+        model.put("user", user);
+        List<User> users = userDao.findAll();
+        model.put("users", users);
+        return new ModelView("/templates/user/list/index.html", model);
     }
 
     @PostMapping(path = "/user/login")
@@ -96,7 +108,30 @@ public class RequestHandler {
 
     @GetMapping(path = "/article")
     public ModelView article(@SessionAttribute User user) {
-        return new ModelView("/templates/article/index.html", Map.of("user", user));
+        Map<String, Object> model = new HashMap<>();
+        model.put("user", user);
+        return new ModelView("/templates/article/index.html", model);
+    }
+
+    @PostMapping(path = "/article")
+    public HttpResponse article(@SessionAttribute User user, @FormData Map<String, String> parameters) {
+        String id = UUID.randomUUID().toString();
+        String title = parameters.get("title");
+        String content = parameters.get("content");
+        Article article = new Article(id, title, user.getUserId(), content);
+        articleDao.save(article);
+        return HttpResponse.found("/");
+    }
+
+    @GetMapping(path = "/error")
+    public ModelView error(@SessionAttribute(required = false) User user, HttpRequest request) {
+        Map<String, Object> model = new HashMap<>();
+        String code = request.getQueryString().get("code");
+        String message = request.getQueryString().get("message");
+        model.put("user", user);
+        model.put("code", code);
+        model.put("message", message);
+        return new ModelView("/templates/error/error.html", model);
     }
 
     private String getSessionId(HttpRequest request) {

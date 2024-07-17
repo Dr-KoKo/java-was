@@ -6,6 +6,8 @@ import server.http.model.header.Header;
 import server.http.model.header.Headers;
 import server.http.model.startline.Method;
 import server.http.model.startline.RequestLine;
+import server.http.model.startline.Target;
+import server.http.model.startline.Version;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -72,5 +74,9 @@ public class HttpRequest {
 
     public ContentType getContentType() {
         return ContentType.of(headers.get(Header.CONTENT_TYPE.getFieldName()));
+    }
+
+    public HttpRequest forward(Method method, Target target) {
+        return new HttpRequest(new RequestLine(Version.HTTP_1_1, method, target), headers, body);
     }
 }

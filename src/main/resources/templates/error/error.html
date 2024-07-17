@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="/static/css/reset.css" rel="stylesheet" />
+    <link href="/static/css/global.css" rel="stylesheet" />
+    <link href="/static/css/main.css" rel="stylesheet" />
+    <style>
+        .wrapper h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        .wrapper p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        .wrapper a {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            color: #fff;
+            background-color: #007bff;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+        .wrapper a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    {{header}}
+    <div class="wrapper">
+        <h1>Error {{code}}</h1>
+        <p>{{message}}</p>
+        <a href="/">돌아가기</a>
+    </div>
+</div>
+</body>
+</html>

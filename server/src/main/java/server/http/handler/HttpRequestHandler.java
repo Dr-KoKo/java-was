@@ -10,9 +10,7 @@ import server.http.model.HttpRequest;
 import server.http.model.HttpResponse;
 import server.http.model.body.Body;
 import server.http.model.header.Headers;
-import server.http.model.startline.StatusCode;
-import server.http.model.startline.StatusLine;
-import server.http.model.startline.Version;
+import server.http.model.startline.*;
 import server.http.parser.HttpRequestParser;
 import server.http.parser.HttpRequestParserImpl;
 import server.processor.HttpRequestProcessor;
@@ -40,8 +38,9 @@ public class HttpRequestHandler implements Runnable {
         logger.debug("Client connected");
 
         while (connectionManager.isAlive()) {
+            HttpRequest httpRequest = null;
             try {
-                HttpRequest httpRequest = getHttpRequest();
+                httpRequest = getHttpRequest();
                 logger.debug("message received = {}", httpRequest);
                 HttpResponse response = processor.process(httpRequest);
                 logger.debug("processed = {}", response);
@@ -51,7 +50,9 @@ public class HttpRequestHandler implements Runnable {
                 responseHttp(new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.BAD_REQUEST)));
             } catch (ResponseException e) {
                 logger.info("exception", e);
-                responseHttp(new HttpResponse(new StatusLine(Version.HTTP_1_1, e.getStatusCode())));
+                httpRequest = httpRequest.forward(Method.GET, new Target("/error?" + "code=" + e.getStatusCode().getCode() + "&message=" + e.getMessage()));
+                HttpResponse response = processor.process(httpRequest);
+                responseHttp(response);
             } catch (Exception e) {
                 logger.info("exception", e);
                 responseHttp(new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.INTERNAL_SERVER_ERROR)));

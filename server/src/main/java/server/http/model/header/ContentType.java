@@ -9,6 +9,7 @@ public enum ContentType {
     JPG("jpg", "image/jpeg"),
     SVG("svg", "image/svg+xml"),
     FORM_DATA("form-data", "application/x-www-form-urlencoded"),
+    MULTIPART_FORM_DATA("multi-part", "multipart/form-data"),
     DEFAULT("", "text/plain");
 
     private final String extension;
@@ -29,8 +30,11 @@ public enum ContentType {
     }
 
     public static ContentType of(String value) {
+        if (value == null || value.isEmpty()) {
+            return null;
+        }
         for (ContentType contentType : ContentType.values()) {
-            if (contentType.contentType.equals(value)) {
+            if (value.contains(contentType.contentType)) {
                 return contentType;
             }
         }

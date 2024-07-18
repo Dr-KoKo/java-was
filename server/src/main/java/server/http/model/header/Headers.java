@@ -26,4 +26,11 @@ public class Headers {
         }
         return sb.toString();
     }
+
+    public void sout() {
+        for (String key : headers.keySet()) {
+            headers.put(key, headers.get(key));
+            System.out.println(key + ": " + headers.get(key));
+        }
+    }
 }

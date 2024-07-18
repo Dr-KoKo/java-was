@@ -1,16 +1,15 @@
 package codesquad.application;
 
 import codesquad.application.adapter.RequestHandlerAdapter;
-import codesquad.application.argumentresolver.ArgumentResolver;
-import codesquad.application.argumentresolver.FormUrlEncodedResolver;
-import codesquad.application.argumentresolver.NoOpArgumentResolver;
-import codesquad.application.argumentresolver.SessionArgumentResolver;
+import codesquad.application.argumentresolver.*;
 import codesquad.application.handler.RequestHandler;
 import codesquad.application.handler.SessionStorage;
 import codesquad.application.returnvaluehandler.ModelViewHandler;
 import codesquad.application.returnvaluehandler.NoOpViewHandler;
 import codesquad.application.returnvaluehandler.ReturnValueHandler;
-import codesquad.infra.*;
+import codesquad.infra.JdbcArticleStorage;
+import codesquad.infra.JdbcUserStorage;
+import codesquad.infra.MemorySessionStorage;
 
 import java.util.List;
 
@@ -49,7 +48,7 @@ public class SingletonContainer {
 
     public List<ArgumentResolver<?>> argumentResolvers() {
         if (argumentResolvers == null) {
-            argumentResolvers = List.of(new NoOpArgumentResolver(), new FormUrlEncodedResolver(), new SessionArgumentResolver(sessionStorage()));
+            argumentResolvers = List.of(new NoOpArgumentResolver(), new FormUrlEncodedResolver(), new MultipartArgumentResolver(), new SessionArgumentResolver(sessionStorage()));
         }
         return argumentResolvers;
     }

@@ -28,7 +28,7 @@ class RequestHandlerTest implements HttpRequestFixture {
         mockArticleDao = new MockArticleDao();
         memorySessionStorage = new MemorySessionStorage();
         requestHandler = new RequestHandler(mockUserDao, mockArticleDao, memorySessionStorage);
-        requestHandlerAdapter = new RequestHandlerAdapter(List.of(new NoOpArgumentResolver(), new SessionArgumentResolver(memorySessionStorage), new FormUrlEncodedResolver(), new QueryStringArgumentResolver()), List.of(new ModelViewHandler(), new NoOpViewHandler()));
+        requestHandlerAdapter = new RequestHandlerAdapter(List.of(new NoOpArgumentResolver(), new SessionArgumentResolver(memorySessionStorage), new FormUrlEncodedResolver(), new QueryStringArgumentResolver(), new MultipartArgumentResolver()), List.of(new ModelViewHandler(), new NoOpViewHandler()));
     }
 
     @DisplayName("html을 요청하면")

@@ -3,7 +3,10 @@ package codesquad.application.handler;
 import codesquad.annotation.api.GetMapping;
 import codesquad.annotation.api.PostMapping;
 import codesquad.annotation.api.parameter.FormData;
+import codesquad.annotation.api.parameter.Multipart;
+import codesquad.annotation.api.parameter.QueryString;
 import codesquad.annotation.api.parameter.SessionAttribute;
+import codesquad.application.checker.FileSignatureChecker;
 import codesquad.application.model.Article;
 import codesquad.application.model.User;
 import codesquad.application.returnvaluehandler.ModelView;
@@ -17,6 +20,11 @@ import server.http.model.startline.StatusCode;
 import server.http.model.startline.StatusLine;
 import server.http.model.startline.Version;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
 import java.util.*;
 
 public class RequestHandler {
@@ -107,19 +115,61 @@ public class RequestHandler {
     }
 
     @GetMapping(path = "/article")
-    public ModelView article(@SessionAttribute User user) {
+    public ModelView article(@SessionAttribute(required = false) User user) {
         Map<String, Object> model = new HashMap<>();
         model.put("user", user);
         return new ModelView("/templates/article/index.html", model);
     }
 
     @PostMapping(path = "/article")
-    public HttpResponse article(@SessionAttribute User user, @FormData Map<String, String> parameters) {
+    public HttpResponse article(@SessionAttribute(required = false) User user, @Multipart Map<String, byte[]> multipart, HttpRequest request) {
         String id = UUID.randomUUID().toString();
-        String title = parameters.get("title");
-        String content = parameters.get("content");
-        Article article = new Article(id, title, user.getUserId(), content);
+
+        request.getHeader().sout();
+        for (String key : multipart.keySet()) {
+            System.out.println(key + "=" + new String(multipart.get(key)));
+        }
+
+        String title = new String(multipart.get("title"));
+        String content = new String(multipart.get("content"));
+        Article article = new Article(id, title, "test", content);
         articleDao.save(article);
+
+        String extension = FileSignatureChecker.getFileExtension(multipart.get("image"));
+        System.out.println(extension);
+
+        // !!!
+        String rootDirectory = "".replace("~", System.getProperty("user.home"));
+        System.out.println(System.getProperty("user.home"));
+
+        URL resourceUrl = getClass().getResource("/");
+        System.out.println(resourceUrl.getPath());
+        File file = new File(resourceUrl.getFile() + "resource/static/img/article/" + id);
+
+        if (!file.getParentFile().exists()) {
+            System.out.println(file.getAbsolutePath());
+            boolean mkdirs = file.getParentFile().mkdirs(); // 상위 디렉토리 생성 시도
+            if (!mkdirs) {
+                throw new RuntimeException("Failed to create directory: " + file.getParent());
+            }
+        }
+        if (!file.exists()) {
+            try {
+                boolean created = file.createNewFile(); // 파일 생성 시도
+                if (!created) {
+                    throw new RuntimeException("Failed to create file: " + file.getPath());
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Error creating file: " + file.getPath(), e);
+            }
+        }
+        try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+            byte[] image = multipart.get("image");
+            fileOutputStream.write(image);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         return HttpResponse.found("/");
     }
 

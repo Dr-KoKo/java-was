@@ -113,6 +113,7 @@ public class ModelViewHandler implements ReturnValueHandler {
             temp = block.replace("{{title}}", article.getTitle());
             temp = block.replace("{{account}}", article.getAuthorId());
             temp = temp.replace("{{content}}", article.getContent());
+            temp = temp.replace("{{article_id}}", article.getId());
             replacement.append(temp);
         }
         String result = target.replace(marker, replacement);

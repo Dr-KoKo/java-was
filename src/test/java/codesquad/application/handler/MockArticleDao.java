@@ -35,6 +35,6 @@ public class MockArticleDao implements ArticleDao {
 
     @Override
     public List<Article> findAllArticle() {
-        return List.of(article);
+        return List.of();
     }
 }

@@ -1,11 +1,11 @@
 package codesquad.application.handler;
 
 import codesquad.application.adapter.RequestHandlerAdapter;
-import codesquad.application.argumentresolver.FormUrlEncodedResolver;
-import codesquad.application.argumentresolver.NoOpArgumentResolver;
+import codesquad.application.argumentresolver.*;
 import codesquad.application.fixture.HttpRequestFixture;
 import codesquad.application.model.User;
 import codesquad.application.returnvaluehandler.ModelViewHandler;
+import codesquad.application.returnvaluehandler.NoOpViewHandler;
 import codesquad.infra.MemorySessionStorage;
 import org.junit.jupiter.api.*;
 import server.http.model.HttpRequest;
@@ -25,9 +25,10 @@ class RequestHandlerTest implements HttpRequestFixture {
     @BeforeEach
     void setUp() {
         mockUserDao = new MockUserDao();
+        mockArticleDao = new MockArticleDao();
         memorySessionStorage = new MemorySessionStorage();
         requestHandler = new RequestHandler(mockUserDao, mockArticleDao, memorySessionStorage);
-        requestHandlerAdapter = new RequestHandlerAdapter(List.of(new NoOpArgumentResolver(), new FormUrlEncodedResolver()), List.of(new ModelViewHandler()));
+        requestHandlerAdapter = new RequestHandlerAdapter(List.of(new NoOpArgumentResolver(), new SessionArgumentResolver(memorySessionStorage), new FormUrlEncodedResolver(), new QueryStringArgumentResolver()), List.of(new ModelViewHandler(), new NoOpViewHandler()));
     }
 
     @DisplayName("html을 요청하면")
@@ -41,7 +42,7 @@ class RequestHandlerTest implements HttpRequestFixture {
             void login_header() throws NoSuchMethodException {
                 // when
                 HttpRequest httpRequest = simpleRequest(Method.GET, "/");
-                HttpResponse httpResponse = requestHandlerAdapter.handle(requestHandler, requestHandler.getClass().getMethod("index", HttpRequest.class), httpRequest);
+                HttpResponse httpResponse = requestHandlerAdapter.handle(requestHandler, requestHandler.getClass().getMethod("index", User.class), httpRequest);
 
                 // then
                 Assertions.assertEquals(httpResponse.getStatusLine().toString(), "HTTP/1.1 200 OK\n");
@@ -52,7 +53,7 @@ class RequestHandlerTest implements HttpRequestFixture {
             void not_login_header() throws NoSuchMethodException {
                 // when
                 HttpRequest httpRequest = simpleRequest(Method.GET, "/");
-                HttpResponse httpResponse = requestHandlerAdapter.handle(requestHandler, requestHandler.getClass().getMethod("index", HttpRequest.class), httpRequest);
+                HttpResponse httpResponse = requestHandlerAdapter.handle(requestHandler, requestHandler.getClass().getMethod("index", User.class), httpRequest);
 
                 // then
                 Assertions.assertEquals(httpResponse.getStatusLine().toString(), "HTTP/1.1 200 OK\n");

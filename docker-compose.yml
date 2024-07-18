@@ -10,6 +10,18 @@ services:
     volumes:
       - h2-data:/h2-data  # Persistent storage for database files
       - ./initdb:/docker-entrypoint-initdb.d  # Initialization scripts
-
+    networks:
+      - network
+  app:
+    build:
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - h2database
+    networks:
+      - network
 volumes:
   h2-data:
+networks:
+  network:

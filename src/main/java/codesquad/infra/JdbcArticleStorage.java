@@ -14,13 +14,14 @@ import java.util.Optional;
 public class JdbcArticleStorage implements ArticleDao {
     @Override
     public void save(Article article) {
-        String sql = "insert into articles(id, title, author_id, content) values(?,?,?,?)";
+        String sql = "insert into articles(id, title, author_id, content, image) values(?,?,?,?,?)";
         try (Connection connection = H2ConnectionManager.getConnection()) {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setString(1, article.getId());
             statement.setString(2, article.getTitle());
             statement.setString(3, article.getAuthorId());
             statement.setString(4, article.getContent());
+            statement.setBytes(5, article.getImage());
             statement.executeUpdate();
             statement.close();
         } catch (SQLException e) {
@@ -36,7 +37,7 @@ public class JdbcArticleStorage implements ArticleDao {
             statement.setString(1, id);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                Article article = new Article(resultSet.getString("id"), resultSet.getString("title"), resultSet.getString("author_id"), resultSet.getString("content"));
+                Article article = new Article(resultSet.getString("id"), resultSet.getString("title"), resultSet.getString("author_id"), resultSet.getString("content"), resultSet.getBytes("image"));
                 return Optional.of(article);
             }
             resultSet.close();
@@ -55,7 +56,7 @@ public class JdbcArticleStorage implements ArticleDao {
             PreparedStatement statement = connection.prepareStatement(sql);
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
-                Article article = new Article(resultSet.getString("id"), resultSet.getString("title"), resultSet.getString("author_id"), resultSet.getString("content"));
+                Article article = new Article(resultSet.getString("id"), resultSet.getString("title"), resultSet.getString("author_id"), resultSet.getString("content"), resultSet.getBytes("image"));
                 articles.add(article);
             }
             resultSet.close();

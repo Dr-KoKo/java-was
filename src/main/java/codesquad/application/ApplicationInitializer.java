@@ -37,6 +37,8 @@ public class ApplicationInitializer {
         logger.info("Initializing DelegatingProcessor");
         DelegatingProcessor.getInstance().addRequestMappings(processors);
         logger.info("Initializing done");
+
+        H2Initializer.initialize();
     }
 
     private static void processAnnotation(Annotation annotation, java.lang.reflect.Method method,

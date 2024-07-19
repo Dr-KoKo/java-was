@@ -63,17 +63,21 @@ public class MultipartArgumentResolver implements ArgumentResolver<Map<String, b
 
     private byte[] readContent(InputStream inputStream, String boundary) throws IOException {
         ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-        int prev = 0, current;
+        int prev = -1, current;
         while ((current = inputStream.read()) != -1) {
             if (prev == '\r' && current == '\n') {
                 if (checkBoundary(inputStream, boundary)) {
                     break;
                 }
             }
-            buffer.write(prev);
+            if (prev != -1) {
+                buffer.write(prev);
+            }
             prev = current;
         }
-        buffer.write(prev); // Write the last character
+        if (prev != -1) {
+            buffer.write(prev);
+        }
         return buffer.toByteArray();
     }
 

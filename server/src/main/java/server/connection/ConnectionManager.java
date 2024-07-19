@@ -3,6 +3,8 @@ package server.connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.exception.ConnectedSocketException;
+import server.exception.ResponseException;
+import server.http.model.startline.StatusCode;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,14 +64,12 @@ public abstract class ConnectionManager {
 
     public byte[] readNBytes(int bytes) {
         try {
-            byte[] buffer = new byte[bytes];
-            int bytesRead = getInputStream().read(buffer, 0, bytes);
-            if (bytesRead < bytes) {
-                byte[] bytesReadArray = new byte[bytesRead];
-                System.arraycopy(buffer, 0, bytesReadArray, 0, bytesRead);
-                return bytesReadArray;
+            byte[] result = new byte[bytes];
+            int read = getInputStream().readNBytes(result, 0, bytes);
+            if (read != bytes) {
+                throw new ResponseException("not read", StatusCode.INTERNAL_SERVER_ERROR);
             }
-            return buffer;
+            return result;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

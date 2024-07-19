@@ -4,7 +4,6 @@ import codesquad.annotation.api.GetMapping;
 import codesquad.annotation.api.PostMapping;
 import codesquad.annotation.api.parameter.FormData;
 import codesquad.annotation.api.parameter.Multipart;
-import codesquad.annotation.api.parameter.QueryString;
 import codesquad.annotation.api.parameter.SessionAttribute;
 import codesquad.application.checker.FileSignatureChecker;
 import codesquad.application.model.Article;
@@ -14,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import server.http.model.HttpRequest;
 import server.http.model.HttpResponse;
+import server.http.model.body.Body;
 import server.http.model.header.Header;
 import server.http.model.header.Headers;
 import server.http.model.startline.StatusCode;
@@ -23,8 +23,7 @@ import server.http.model.startline.Version;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class RequestHandler {
@@ -122,30 +121,18 @@ public class RequestHandler {
     }
 
     @PostMapping(path = "/article")
-    public HttpResponse article(@SessionAttribute(required = false) User user, @Multipart Map<String, byte[]> multipart, HttpRequest request) {
+    public HttpResponse article(@SessionAttribute(required = true) User user, @Multipart Map<String, byte[]> multipart, HttpRequest request) {
         String id = UUID.randomUUID().toString();
-
-        request.getHeader().sout();
-        for (String key : multipart.keySet()) {
-            System.out.println(key + "=" + new String(multipart.get(key)));
-        }
-
         String title = new String(multipart.get("title"));
         String content = new String(multipart.get("content"));
-        Article article = new Article(id, title, "test", content);
+        byte[] image = multipart.get("image");
+        Article article = new Article(id, title, user.getUserId(), content, image);
         articleDao.save(article);
 
-        String extension = FileSignatureChecker.getFileExtension(multipart.get("image"));
-        System.out.println(extension);
-
-        // !!!
-        String rootDirectory = "".replace("~", System.getProperty("user.home"));
-        System.out.println(System.getProperty("user.home"));
-
-        URL resourceUrl = getClass().getResource("/");
-        System.out.println(resourceUrl.getPath());
-        File file = new File(resourceUrl.getFile() + "resource/static/img/article/" + id);
-
+        // store image as file
+        String extension = FileSignatureChecker.getFileExtension(image);
+        String rootDirectory = System.getProperty("user.home");
+        File file = new File(rootDirectory + "/resource" + "/" + id + "." + extension);
         if (!file.getParentFile().exists()) {
             System.out.println(file.getAbsolutePath());
             boolean mkdirs = file.getParentFile().mkdirs(); // 상위 디렉토리 생성 시도
@@ -153,24 +140,26 @@ public class RequestHandler {
                 throw new RuntimeException("Failed to create directory: " + file.getParent());
             }
         }
-        if (!file.exists()) {
-            try {
-                boolean created = file.createNewFile(); // 파일 생성 시도
-                if (!created) {
-                    throw new RuntimeException("Failed to create file: " + file.getPath());
-                }
-            } catch (IOException e) {
-                throw new RuntimeException("Error creating file: " + file.getPath(), e);
-            }
-        }
         try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-            byte[] image = multipart.get("image");
             fileOutputStream.write(image);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         return HttpResponse.found("/");
+    }
+
+    @GetMapping(path = "/images/articles/.*")
+    public HttpResponse images(@SessionAttribute(required = false) User user, HttpRequest request) {
+        String articleId = request.getRequestPath().substring(request.getRequestPath().lastIndexOf('/') + 1);
+        Optional<Article> findArticle = articleDao.findById(articleId);
+        if (findArticle.isEmpty()) {
+            return HttpResponse.notFound();
+        }
+        Headers headers = new Headers();
+        String extension = FileSignatureChecker.getFileExtension(findArticle.get().getImage());
+        headers.addHeader("Content-Type", "image/" + extension);
+        return new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.OK), headers, new Body(findArticle.get().getImage()));
     }
 
     @GetMapping(path = "/error")

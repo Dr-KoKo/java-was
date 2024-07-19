@@ -49,12 +49,12 @@ public class HttpRequestHandler implements Runnable {
                 logger.info("exception", e);
                 responseHttp(new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.BAD_REQUEST)));
             } catch (ResponseException e) {
-                logger.info("exception", e);
+                logger.info("exception for request {}", httpRequest.getRequestPath(), e);
                 httpRequest = httpRequest.forward(Method.GET, new Target("/error?" + "code=" + e.getStatusCode().getCode() + "&message=" + e.getMessage()));
                 HttpResponse response = processor.process(httpRequest);
                 responseHttp(response);
             } catch (Exception e) {
-                logger.info("exception", e);
+                logger.info("uncaught exception for request {}", httpRequest.getRequestPath(), e);
                 responseHttp(new HttpResponse(new StatusLine(Version.HTTP_1_1, StatusCode.INTERNAL_SERVER_ERROR)));
             } finally {
                 connectionManager.incrementRequestCounter();

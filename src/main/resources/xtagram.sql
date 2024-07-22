@@ -13,5 +13,8 @@ CREATE TABLE  IF NOT EXISTS users
     nickname VARCHAR(255) NOT NULL
 );
 INSERT INTO users (user_id, password, nickname)
-VALUES ('user1', 'password1', 'User One'),
-       ('user2', 'password2', 'User Two');
+SELECT 'user1', 'password1', 'User One'
+    WHERE NOT EXISTS (SELECT 1 FROM users WHERE user_id = 'user1');
+INSERT INTO users (user_id, password, nickname)
+SELECT 'user2', 'password2', 'User Two'
+    WHERE NOT EXISTS (SELECT 1 FROM users WHERE user_id = 'user2');
